@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'i18n/strings.g.dart';
+import 'package:more_enjoy_karaoke_life/utils/utils.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,7 +32,7 @@ class MyApp extends StatelessWidget {
         //
         // This works for code too, not just values: Most code changes can be
         // tested with just a hot reload.
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
+        primarySwatch: AppColors.primaryColor
       ),
       home: const MyHomePage(title: 'Flutter Demo Home Page'),
     );
