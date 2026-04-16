@@ -68,7 +68,9 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
         }
       }
     } catch (e) {
-      debugPrint("エラーが発生したよ！: $e");
+      if (context.mounted) {
+        context.push('/error', extra: e);
+      }
     }
   }
 
@@ -84,7 +86,9 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
         context.pop();
       }
     } catch (e) {
-      if (mounted) context.push('/error');
+      if (context.mounted) {
+        context.push('/error', extra: e.toString());
+      }
     }
   }
 
@@ -96,7 +100,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
 
     return Scaffold(
       appBar: CommonAppBar(
-        title: t.game.gameList,
+        title: t.profile.title,
         showUserIcon: false,
       ),
       body: SingleChildScrollView(

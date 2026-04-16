@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class ErrorHandler {
   static void handleError(
@@ -19,10 +20,8 @@ class ErrorHandler {
     debugPrint(e.toString());
 
     //エラー画面の表示
-    // navigator.push(
-    //   MaterialPageRoute(
-    //
-    //   )
-    // );
+    if (context.mounted) {
+      context.push('/error', extra: errorMessage);
+    }
   }
 }
