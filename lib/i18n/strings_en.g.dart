@@ -43,6 +43,7 @@ class TranslationsEn extends Translations with BaseTranslations<AppLocale, Trans
 	@override late final _TranslationsMessagesEn messages = _TranslationsMessagesEn._(_root);
 	@override late final _TranslationsAboutEn about = _TranslationsAboutEn._(_root);
 	@override late final _TranslationsGameEn game = _TranslationsGameEn._(_root);
+	@override late final _TranslationsProfileEn profile = _TranslationsProfileEn._(_root);
 }
 
 // Path: common
@@ -54,6 +55,7 @@ class _TranslationsCommonEn extends TranslationsCommonJa {
 	// Translations
 	@override String get start => 'Start';
 	@override String get aboutApp => 'About App';
+	@override String get crop => '切り抜き';
 }
 
 // Path: messages
@@ -63,7 +65,7 @@ class _TranslationsMessagesEn extends TranslationsMessagesJa {
 	final TranslationsEn _root; // ignore: unused_field
 
 	// Translations
-	@override String get example => '';
+	@override String get errorCommon => 'エラーが発生しました。\n再度やり直してください。';
 }
 
 // Path: about
@@ -88,6 +90,18 @@ class _TranslationsGameEn extends TranslationsGameJa {
 	@override String get comingSoonGame => '近日公開予定！\nお楽しみに...!!!';
 }
 
+// Path: profile
+class _TranslationsProfileEn extends TranslationsProfileJa {
+	_TranslationsProfileEn._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'プロフィール設定';
+	@override String get greeting => 'キミのことを教えて！';
+	@override String get nameTitle => '名前（ニックネーム）';
+}
+
 /// The flat map containing all translations for locale <en>.
 /// Only for edge cases! For simple maps, use the map function of this library.
 ///
@@ -98,11 +112,15 @@ extension on TranslationsEn {
 		return switch (path) {
 			'common.start' => 'Start',
 			'common.aboutApp' => 'About App',
-			'messages.example' => '',
+			'common.crop' => '切り抜き',
+			'messages.errorCommon' => 'エラーが発生しました。\n再度やり直してください。',
 			'about.title' => 'カラオケを愛するすべてのあなたへ！',
 			'about.description' => 'いつものカラオケがもっと楽しくなる遊びが、このアプリに大集合！\n\n🏆 個人戦でガチ勝負！\n🤝 ペア戦で絆を深める！\n🌟 全員での協力プレー！\n\nただ歌うだけじゃもったいない！\nさあ、最高のステージへ！',
 			'game.gameList' => '遊べるゲーム一覧',
 			'game.comingSoonGame' => '近日公開予定！\nお楽しみに...!!!',
+			'profile.title' => 'プロフィール設定',
+			'profile.greeting' => 'キミのことを教えて！',
+			'profile.nameTitle' => '名前（ニックネーム）',
 			_ => null,
 		};
 	}

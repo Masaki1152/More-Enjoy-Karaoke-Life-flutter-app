@@ -1,52 +1,97 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:more_enjoy_karaoke_life/utils/utils.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:go_router/go_router.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
   final storage = const FlutterSecureStorage();
-  final _controller = TextEditingController();
+  String? _name;
+  String? _imagePath;
+  bool _isLoading = true;
 
-  Future<void> _saveProfile() async {
-    if (_controller.text.isNotEmpty) {
-      await storage.write(key: 'user_name', value: _controller.text);
-      if (mounted) context.pop();
-    }
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  // データを読み込むよ！
+  Future<void> _loadProfile() async {
+    final name = await storage.read(key: 'user_name');
+    final image = await storage.read(key: 'user_icon_path');
+    setState(() {
+      _name = name;
+      _imagePath = image;
+      _isLoading = false;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    // 読み込み中はぐるぐるを表示して、不自然な切り替わりを防ぐよ！
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator(color: Colors.lightBlue)),
+      );
+    }
+
     return Scaffold(
-      appBar: AppBar(title: const Text('プロフィール設定')),
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
+      appBar: AppBar(
+        toolbarHeight: 100,
+        title: const Text(
+          "プロフィール",
+          style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900),
+        ),
+        centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit),
+            iconSize: 40,
+            onPressed: () async {
+              // 編集画面へ遷移！戻ってきたらデータを再読み込みするよ
+              await context.push('/profile_edit');
+              _loadProfile();
+            },
+          )
+        ],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 24.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('まずはキミのことを教えて！', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 24),
-            TextField(
-              controller: _controller,
-              decoration: const InputDecoration(labelText: '名前（ニックネーム）', border: OutlineInputBorder()),
-            ),
-            const SizedBox(height: 32),
-            SizedBox(
-              width: double.infinity,
-              height: 56,
-              child: ElevatedButton(
-                onPressed: _saveProfile,
-                style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryColor),
-                child: const Text('保存してはじめる', style: TextStyle(color: Colors.white)),
-              ),
+            const Text('名前（ニックネーム）', style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            Text(_name ?? '', style: const TextStyle(fontSize: 18)),
+
+            const SizedBox(height: 40),
+
+            const Text('ユーザー画像', style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 16),
+            Center(
+              child: _buildAvatar(size: 150),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildAvatar({required double size}) {
+    return CircleAvatar(
+      radius: size / 2,
+      backgroundColor: Colors.grey[200],
+      backgroundImage: _imagePath != null ? FileImage(File(_imagePath!)) : null,
+      child: _imagePath == null
+          ? Icon(Icons.account_circle, size: size, color: Colors.grey)
+          : null,
     );
   }
 }

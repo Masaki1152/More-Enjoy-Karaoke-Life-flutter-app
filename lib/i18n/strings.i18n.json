@@ -1,10 +1,11 @@
 {
   "common": {
     "start": "スタート",
-    "aboutApp": "アプリについて"
+    "aboutApp": "アプリについて",
+    "crop": "切り抜き"
   },
   "messages": {
-    "example": ""
+    "errorCommon": "エラーが発生しました。\\n再度やり直してください。"
   },
   "about": {
     "title": "カラオケを愛するすべてのあなたへ！",
@@ -13,5 +14,10 @@
   "game": {
     "gameList": "遊べるゲーム一覧",
     "comingSoonGame": "近日公開予定！\\nお楽しみに...!!!"
+  },
+  "profile": {
+    "title": "プロフィール設定",
+    "greeting": "キミのことを教えて！",
+    "nameTitle": "名前（ニックネーム）"
   }
 }

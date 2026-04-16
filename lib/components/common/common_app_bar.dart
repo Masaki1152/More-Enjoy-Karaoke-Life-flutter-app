@@ -59,7 +59,18 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
                 }
 
                 return IconButton(
-                  onPressed: () => context.push('/profile'),
+                  onPressed: () async {
+                    const storage = FlutterSecureStorage();
+                    final userName = await storage.read(key: 'user_name');
+
+                    if (userName == null) {
+                      // 未登録してない場合
+                      context.push('/profile_edit');
+                    } else {
+                      // 登録済みの場合
+                      context.push('/profile');
+                    }
+                  },
                   icon: iconWidget,
                   iconSize: 60,
                   padding: EdgeInsets.zero,
