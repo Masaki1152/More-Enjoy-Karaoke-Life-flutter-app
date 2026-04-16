@@ -43,6 +43,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final TranslationsCommonJa common = TranslationsCommonJa.internal(_root);
 	late final TranslationsMessagesJa messages = TranslationsMessagesJa.internal(_root);
 	late final TranslationsAboutJa about = TranslationsAboutJa.internal(_root);
+	late final TranslationsGameJa game = TranslationsGameJa.internal(_root);
 }
 
 // Path: common
@@ -87,6 +88,21 @@ class TranslationsAboutJa {
 	String get description => 'いつものカラオケがもっと楽しくなる遊びが、このアプリに大集合！\n\n🏆 個人戦でガチ勝負！\n🤝 ペア戦で絆を深める！\n🌟 全員での協力プレー！\n\nただ歌うだけじゃもったいない！\nさあ、最高のステージへ！';
 }
 
+// Path: game
+class TranslationsGameJa {
+	TranslationsGameJa.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// ja: '遊べるゲーム一覧'
+	String get gameList => '遊べるゲーム一覧';
+
+	/// ja: '近日公開予定！\nお楽しみに...!!!'
+	String get comingSoonGame => '近日公開予定！\nお楽しみに...!!!';
+}
+
 /// The flat map containing all translations for locale <ja>.
 /// Only for edge cases! For simple maps, use the map function of this library.
 ///
@@ -100,6 +116,8 @@ extension on Translations {
 			'messages.example' => '',
 			'about.title' => 'カラオケを愛するすべてのあなたへ！',
 			'about.description' => 'いつものカラオケがもっと楽しくなる遊びが、このアプリに大集合！\n\n🏆 個人戦でガチ勝負！\n🤝 ペア戦で絆を深める！\n🌟 全員での協力プレー！\n\nただ歌うだけじゃもったいない！\nさあ、最高のステージへ！',
+			'game.gameList' => '遊べるゲーム一覧',
+			'game.comingSoonGame' => '近日公開予定！\nお楽しみに...!!!',
 			_ => null,
 		};
 	}
