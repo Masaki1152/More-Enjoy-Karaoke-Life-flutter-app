@@ -52,7 +52,11 @@ class HomeScreen extends StatelessWidget {
                             child: CommonButton(
                               text: t.common.aboutApp,
                               onPressed: () {
-                                print('');
+                                showDialog(
+                                  context: context,
+                                  barrierDismissible: true,
+                                  builder: (context) => const AboutAppPop(),
+                                );
                               },
                             ),
                           ),

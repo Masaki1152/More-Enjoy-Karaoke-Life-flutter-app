@@ -42,6 +42,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	// Translations
 	late final TranslationsCommonJa common = TranslationsCommonJa.internal(_root);
 	late final TranslationsMessagesJa messages = TranslationsMessagesJa.internal(_root);
+	late final TranslationsAboutJa about = TranslationsAboutJa.internal(_root);
 }
 
 // Path: common
@@ -71,6 +72,21 @@ class TranslationsMessagesJa {
 	String get example => '';
 }
 
+// Path: about
+class TranslationsAboutJa {
+	TranslationsAboutJa.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// ja: 'カラオケを愛するすべてのあなたへ！'
+	String get title => 'カラオケを愛するすべてのあなたへ！';
+
+	/// ja: 'いつものカラオケがもっと楽しくなる遊びが、このアプリに大集合！\n\n🏆 個人戦でガチ勝負！\n🤝 ペア戦で絆を深める！\n🌟 全員での協力プレー！\n\nただ歌うだけじゃもったいない！\nさあ、最高のステージへ！'
+	String get description => 'いつものカラオケがもっと楽しくなる遊びが、このアプリに大集合！\n\n🏆 個人戦でガチ勝負！\n🤝 ペア戦で絆を深める！\n🌟 全員での協力プレー！\n\nただ歌うだけじゃもったいない！\nさあ、最高のステージへ！';
+}
+
 /// The flat map containing all translations for locale <ja>.
 /// Only for edge cases! For simple maps, use the map function of this library.
 ///
@@ -82,6 +98,8 @@ extension on Translations {
 			'common.start' => 'スタート',
 			'common.aboutApp' => 'アプリについて',
 			'messages.example' => '',
+			'about.title' => 'カラオケを愛するすべてのあなたへ！',
+			'about.description' => 'いつものカラオケがもっと楽しくなる遊びが、このアプリに大集合！\n\n🏆 個人戦でガチ勝負！\n🤝 ペア戦で絆を深める！\n🌟 全員での協力プレー！\n\nただ歌うだけじゃもったいない！\nさあ、最高のステージへ！',
 			_ => null,
 		};
 	}
