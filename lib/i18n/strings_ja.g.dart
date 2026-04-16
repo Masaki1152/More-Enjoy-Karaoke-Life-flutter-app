@@ -5,16 +5,20 @@
 // ignore_for_file: type=lint, unused_import
 // dart format off
 
-import 'package:flutter/widgets.dart';
-import 'package:intl/intl.dart';
-import 'package:slang/generated.dart';
-import 'strings.g.dart';
+part of 'strings.g.dart';
 
 // Path: <root>
-class TranslationsJa with BaseTranslations<AppLocale, Translations> implements Translations {
+typedef TranslationsJa = Translations; // ignore: unused_element
+class Translations with BaseTranslations<AppLocale, Translations> {
+	/// Returns the current translations of the given [context].
+	///
+	/// Usage:
+	/// final t = Translations.of(context);
+	static Translations of(BuildContext context) => InheritedLocaleData.of<AppLocale, Translations>(context).translations;
+
 	/// You can call this constructor and build your own translation instance of this locale.
 	/// Constructing via the enum [AppLocale.build] is preferred.
-	TranslationsJa({Map<String, Node>? overrides, PluralResolver? cardinalResolver, PluralResolver? ordinalResolver, TranslationMetadata<AppLocale, Translations>? meta})
+	Translations({Map<String, Node>? overrides, PluralResolver? cardinalResolver, PluralResolver? ordinalResolver, TranslationMetadata<AppLocale, Translations>? meta})
 		: assert(overrides == null, 'Set "translation_overrides: true" in order to enable this feature.'),
 		  $meta = meta ?? TranslationMetadata(
 		    locale: AppLocale.ja,
@@ -29,37 +33,42 @@ class TranslationsJa with BaseTranslations<AppLocale, Translations> implements T
 	@override final TranslationMetadata<AppLocale, Translations> $meta;
 
 	/// Access flat map
-	@override dynamic operator[](String key) => $meta.getTranslation(key);
+	dynamic operator[](String key) => $meta.getTranslation(key);
 
-	late final TranslationsJa _root = this; // ignore: unused_field
+	late final Translations _root = this; // ignore: unused_field
 
-	@override 
-	TranslationsJa $copyWith({TranslationMetadata<AppLocale, Translations>? meta}) => TranslationsJa(meta: meta ?? this.$meta);
+	Translations $copyWith({TranslationMetadata<AppLocale, Translations>? meta}) => Translations(meta: meta ?? this.$meta);
 
 	// Translations
-	@override late final _TranslationsCommonJa common = _TranslationsCommonJa._(_root);
-	@override late final _TranslationsMessagesJa messages = _TranslationsMessagesJa._(_root);
+	late final TranslationsCommonJa common = TranslationsCommonJa.internal(_root);
+	late final TranslationsMessagesJa messages = TranslationsMessagesJa.internal(_root);
 }
 
 // Path: common
-class _TranslationsCommonJa implements TranslationsCommonEn {
-	_TranslationsCommonJa._(this._root);
+class TranslationsCommonJa {
+	TranslationsCommonJa.internal(this._root);
 
-	final TranslationsJa _root; // ignore: unused_field
+	final Translations _root; // ignore: unused_field
 
 	// Translations
-	@override String get start => 'スタート';
-	@override String get aboutApp => 'アプリについて';
+
+	/// ja: 'スタート'
+	String get start => 'スタート';
+
+	/// ja: 'アプリについて'
+	String get aboutApp => 'アプリについて';
 }
 
 // Path: messages
-class _TranslationsMessagesJa implements TranslationsMessagesEn {
-	_TranslationsMessagesJa._(this._root);
+class TranslationsMessagesJa {
+	TranslationsMessagesJa.internal(this._root);
 
-	final TranslationsJa _root; // ignore: unused_field
+	final Translations _root; // ignore: unused_field
 
 	// Translations
-	@override String get example => '';
+
+	/// ja: ''
+	String get example => '';
 }
 
 /// The flat map containing all translations for locale <ja>.
@@ -67,7 +76,7 @@ class _TranslationsMessagesJa implements TranslationsMessagesEn {
 ///
 /// The Dart AOT compiler has issues with very large switch statements,
 /// so the map is split into smaller functions (512 entries each).
-extension on TranslationsJa {
+extension on Translations {
 	dynamic _flatMapFunction(String path) {
 		return switch (path) {
 			'common.start' => 'スタート',
