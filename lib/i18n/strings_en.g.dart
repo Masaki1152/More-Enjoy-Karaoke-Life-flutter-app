@@ -5,27 +5,25 @@
 // ignore_for_file: type=lint, unused_import
 // dart format off
 
-part of 'strings.g.dart';
+import 'package:flutter/widgets.dart';
+import 'package:intl/intl.dart';
+import 'package:slang/generated.dart';
+import 'strings.g.dart';
 
 // Path: <root>
-typedef TranslationsEn = Translations; // ignore: unused_element
-class Translations with BaseTranslations<AppLocale, Translations> {
-	/// Returns the current translations of the given [context].
-	///
-	/// Usage:
-	/// final t = Translations.of(context);
-	static Translations of(BuildContext context) => InheritedLocaleData.of<AppLocale, Translations>(context).translations;
-
+class TranslationsEn extends Translations with BaseTranslations<AppLocale, Translations> {
 	/// You can call this constructor and build your own translation instance of this locale.
 	/// Constructing via the enum [AppLocale.build] is preferred.
-	Translations({Map<String, Node>? overrides, PluralResolver? cardinalResolver, PluralResolver? ordinalResolver, TranslationMetadata<AppLocale, Translations>? meta})
+	TranslationsEn({Map<String, Node>? overrides, PluralResolver? cardinalResolver, PluralResolver? ordinalResolver, TranslationMetadata<AppLocale, Translations>? meta})
 		: assert(overrides == null, 'Set "translation_overrides: true" in order to enable this feature.'),
 		  $meta = meta ?? TranslationMetadata(
 		    locale: AppLocale.en,
 		    overrides: overrides ?? {},
 		    cardinalResolver: cardinalResolver,
 		    ordinalResolver: ordinalResolver,
-		  ) {
+		  ),
+		  super(cardinalResolver: cardinalResolver, ordinalResolver: ordinalResolver) {
+		super.$meta.setFlatMapFunction($meta.getTranslation); // copy base translations to super.$meta
 		$meta.setFlatMapFunction(_flatMapFunction);
 	}
 
@@ -33,26 +31,37 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	@override final TranslationMetadata<AppLocale, Translations> $meta;
 
 	/// Access flat map
-	dynamic operator[](String key) => $meta.getTranslation(key);
+	@override dynamic operator[](String key) => $meta.getTranslation(key) ?? super.$meta.getTranslation(key);
 
-	late final Translations _root = this; // ignore: unused_field
+	late final TranslationsEn _root = this; // ignore: unused_field
 
-	Translations $copyWith({TranslationMetadata<AppLocale, Translations>? meta}) => Translations(meta: meta ?? this.$meta);
+	@override 
+	TranslationsEn $copyWith({TranslationMetadata<AppLocale, Translations>? meta}) => TranslationsEn(meta: meta ?? this.$meta);
 
 	// Translations
-	late final TranslationsMessagesEn messages = TranslationsMessagesEn._(_root);
+	@override late final _TranslationsCommonEn common = _TranslationsCommonEn._(_root);
+	@override late final _TranslationsMessagesEn messages = _TranslationsMessagesEn._(_root);
+}
+
+// Path: common
+class _TranslationsCommonEn extends TranslationsCommonJa {
+	_TranslationsCommonEn._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get start => 'Start';
+	@override String get aboutApp => 'About App';
 }
 
 // Path: messages
-class TranslationsMessagesEn {
-	TranslationsMessagesEn._(this._root);
+class _TranslationsMessagesEn extends TranslationsMessagesJa {
+	_TranslationsMessagesEn._(TranslationsEn root) : this._root = root, super.internal(root);
 
-	final Translations _root; // ignore: unused_field
+	final TranslationsEn _root; // ignore: unused_field
 
 	// Translations
-
-	/// en: ''
-	String get example => '';
+	@override String get example => '';
 }
 
 /// The flat map containing all translations for locale <en>.
@@ -60,9 +69,11 @@ class TranslationsMessagesEn {
 ///
 /// The Dart AOT compiler has issues with very large switch statements,
 /// so the map is split into smaller functions (512 entries each).
-extension on Translations {
+extension on TranslationsEn {
 	dynamic _flatMapFunction(String path) {
 		return switch (path) {
+			'common.start' => 'Start',
+			'common.aboutApp' => 'About App',
 			'messages.example' => '',
 			_ => null,
 		};

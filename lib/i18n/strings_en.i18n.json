@@ -1,0 +1,9 @@
+{
+  "common": {
+    "start": "Start",
+    "aboutApp": "About App"
+  },
+  "messages": {
+    "example": ""
+  }
+}
