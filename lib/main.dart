@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'i18n/strings.g.dart';
 
 void main() {
-  runApp(const MyApp());
+  WidgetsFlutterBinding.ensureInitialized();
+  LocaleSettings.setLocale(AppLocale.ja);
+  runApp(TranslationProvider(child: const MyApp()));
 }
 
 class MyApp extends StatelessWidget {
