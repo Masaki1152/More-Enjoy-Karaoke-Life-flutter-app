@@ -40,7 +40,23 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	Translations $copyWith({TranslationMetadata<AppLocale, Translations>? meta}) => Translations(meta: meta ?? this.$meta);
 
 	// Translations
+	late final TranslationsCommonEn common = TranslationsCommonEn._(_root);
 	late final TranslationsMessagesEn messages = TranslationsMessagesEn._(_root);
+}
+
+// Path: common
+class TranslationsCommonEn {
+	TranslationsCommonEn._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Start'
+	String get start => 'Start';
+
+	/// en: 'About App'
+	String get aboutApp => 'About App';
 }
 
 // Path: messages
@@ -63,6 +79,8 @@ class TranslationsMessagesEn {
 extension on Translations {
 	dynamic _flatMapFunction(String path) {
 		return switch (path) {
+			'common.start' => 'Start',
+			'common.aboutApp' => 'About App',
 			'messages.example' => '',
 			_ => null,
 		};

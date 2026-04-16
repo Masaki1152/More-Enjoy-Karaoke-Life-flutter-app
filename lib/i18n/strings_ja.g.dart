@@ -37,7 +37,19 @@ class TranslationsJa with BaseTranslations<AppLocale, Translations> implements T
 	TranslationsJa $copyWith({TranslationMetadata<AppLocale, Translations>? meta}) => TranslationsJa(meta: meta ?? this.$meta);
 
 	// Translations
+	@override late final _TranslationsCommonJa common = _TranslationsCommonJa._(_root);
 	@override late final _TranslationsMessagesJa messages = _TranslationsMessagesJa._(_root);
+}
+
+// Path: common
+class _TranslationsCommonJa implements TranslationsCommonEn {
+	_TranslationsCommonJa._(this._root);
+
+	final TranslationsJa _root; // ignore: unused_field
+
+	// Translations
+	@override String get start => 'スタート';
+	@override String get aboutApp => 'アプリについて';
 }
 
 // Path: messages
@@ -58,6 +70,8 @@ class _TranslationsMessagesJa implements TranslationsMessagesEn {
 extension on TranslationsJa {
 	dynamic _flatMapFunction(String path) {
 		return switch (path) {
+			'common.start' => 'スタート',
+			'common.aboutApp' => 'アプリについて',
 			'messages.example' => '',
 			_ => null,
 		};
