@@ -42,6 +42,9 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	// Translations
 	late final TranslationsCommonJa common = TranslationsCommonJa.internal(_root);
 	late final TranslationsMessagesJa messages = TranslationsMessagesJa.internal(_root);
+	late final TranslationsAboutJa about = TranslationsAboutJa.internal(_root);
+	late final TranslationsGameJa game = TranslationsGameJa.internal(_root);
+	late final TranslationsProfileJa profile = TranslationsProfileJa.internal(_root);
 }
 
 // Path: common
@@ -57,6 +60,9 @@ class TranslationsCommonJa {
 
 	/// ja: 'アプリについて'
 	String get aboutApp => 'アプリについて';
+
+	/// ja: '切り抜き'
+	String get crop => '切り抜き';
 }
 
 // Path: messages
@@ -67,8 +73,56 @@ class TranslationsMessagesJa {
 
 	// Translations
 
-	/// ja: ''
-	String get example => '';
+	/// ja: 'エラーが発生しました。\n再度やり直してください。'
+	String get errorCommon => 'エラーが発生しました。\n再度やり直してください。';
+}
+
+// Path: about
+class TranslationsAboutJa {
+	TranslationsAboutJa.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// ja: 'カラオケを愛するすべてのあなたへ！'
+	String get title => 'カラオケを愛するすべてのあなたへ！';
+
+	/// ja: 'いつものカラオケがもっと楽しくなる遊びが、このアプリに大集合！\n\n🏆 個人戦でガチ勝負！\n🤝 ペア戦で絆を深める！\n🌟 全員での協力プレー！\n\nただ歌うだけじゃもったいない！\nさあ、最高のステージへ！'
+	String get description => 'いつものカラオケがもっと楽しくなる遊びが、このアプリに大集合！\n\n🏆 個人戦でガチ勝負！\n🤝 ペア戦で絆を深める！\n🌟 全員での協力プレー！\n\nただ歌うだけじゃもったいない！\nさあ、最高のステージへ！';
+}
+
+// Path: game
+class TranslationsGameJa {
+	TranslationsGameJa.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// ja: '遊べるゲーム一覧'
+	String get gameList => '遊べるゲーム一覧';
+
+	/// ja: '近日公開予定！\nお楽しみに...!!!'
+	String get comingSoonGame => '近日公開予定！\nお楽しみに...!!!';
+}
+
+// Path: profile
+class TranslationsProfileJa {
+	TranslationsProfileJa.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// ja: 'プロフィール設定'
+	String get title => 'プロフィール設定';
+
+	/// ja: 'キミのことを教えて！'
+	String get greeting => 'キミのことを教えて！';
+
+	/// ja: '名前（ニックネーム）'
+	String get nameTitle => '名前（ニックネーム）';
 }
 
 /// The flat map containing all translations for locale <ja>.
@@ -81,7 +135,15 @@ extension on Translations {
 		return switch (path) {
 			'common.start' => 'スタート',
 			'common.aboutApp' => 'アプリについて',
-			'messages.example' => '',
+			'common.crop' => '切り抜き',
+			'messages.errorCommon' => 'エラーが発生しました。\n再度やり直してください。',
+			'about.title' => 'カラオケを愛するすべてのあなたへ！',
+			'about.description' => 'いつものカラオケがもっと楽しくなる遊びが、このアプリに大集合！\n\n🏆 個人戦でガチ勝負！\n🤝 ペア戦で絆を深める！\n🌟 全員での協力プレー！\n\nただ歌うだけじゃもったいない！\nさあ、最高のステージへ！',
+			'game.gameList' => '遊べるゲーム一覧',
+			'game.comingSoonGame' => '近日公開予定！\nお楽しみに...!!!',
+			'profile.title' => 'プロフィール設定',
+			'profile.greeting' => 'キミのことを教えて！',
+			'profile.nameTitle' => '名前（ニックネーム）',
 			_ => null,
 		};
 	}

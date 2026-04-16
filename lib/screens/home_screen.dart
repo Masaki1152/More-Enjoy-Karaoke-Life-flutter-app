@@ -3,6 +3,7 @@ import 'package:more_enjoy_karaoke_life/utils/utils.dart';
 import 'package:more_enjoy_karaoke_life/components/components.dart';
 import 'package:more_enjoy_karaoke_life/i18n/strings.g.dart';
 import 'package:more_enjoy_karaoke_life/conf/constantDev.dart';
+import 'package:go_router/go_router.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -41,9 +42,7 @@ class HomeScreen extends StatelessWidget {
                             height: 80,
                             child: CommonButton(
                               text: t.common.start,
-                              onPressed: () {
-                                print('');
-                              },
+                              onPressed: () => context.push('/game_list'),
                             ),
                           ),
                           const SizedBox(height: 24),
@@ -52,7 +51,11 @@ class HomeScreen extends StatelessWidget {
                             child: CommonButton(
                               text: t.common.aboutApp,
                               onPressed: () {
-                                print('');
+                                showDialog(
+                                  context: context,
+                                  barrierDismissible: true,
+                                  builder: (context) => const AboutAppPop(),
+                                );
                               },
                             ),
                           ),

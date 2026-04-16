@@ -1,9 +1,23 @@
 {
   "common": {
     "start": "スタート",
-    "aboutApp": "アプリについて"
+    "aboutApp": "アプリについて",
+    "crop": "切り抜き"
   },
   "messages": {
-    "example": ""
+    "errorCommon": "エラーが発生しました。\\n再度やり直してください。"
+  },
+  "about": {
+    "title": "カラオケを愛するすべてのあなたへ！",
+    "description": "いつものカラオケがもっと楽しくなる遊びが、このアプリに大集合！\\n\\n\uD83C\uDFC6 個人戦でガチ勝負！\\n\uD83E\uDD1D ペア戦で絆を深める！\\n\uD83C\uDF1F 全員での協力プレー！\\n\\nただ歌うだけじゃもったいない！\\nさあ、最高のステージへ！"
+  },
+  "game": {
+    "gameList": "遊べるゲーム一覧",
+    "comingSoonGame": "近日公開予定！\\nお楽しみに...!!!"
+  },
+  "profile": {
+    "title": "プロフィール設定",
+    "greeting": "キミのことを教えて！",
+    "nameTitle": "名前（ニックネーム）"
   }
 }
