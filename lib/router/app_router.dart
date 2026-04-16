@@ -17,5 +17,12 @@ final GoRouter router = GoRouter(
       path: '/profile_edit',
       builder: (context, state) => const ProfileEditScreen(),
     ),
+    GoRoute(
+      path: '/error',
+      builder: (context, state) {
+        final String? message = state.extra as String?;
+        return ErrorScreen(errorMessage: message);
+      },
+    ),
   ],
 );
