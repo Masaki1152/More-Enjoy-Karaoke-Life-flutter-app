@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:more_enjoy_karaoke_life/conf/constantDev.dart';
 import 'package:more_enjoy_karaoke_life/utils/utils.dart';
 import 'package:more_enjoy_karaoke_life/components/components.dart';
@@ -11,22 +10,8 @@ class GameListScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        toolbarHeight: 100,
-        title: Text(
-          t.game.gameList,
-          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900),
-        ),
-        centerTitle: true,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: IconButton(
-              onPressed: () => context.push('/profile'),
-              icon: const Icon(Icons.account_circle, size: 60),
-            ),
-          ),
-        ],
+      appBar: CommonAppBar(
+        title: t.game.gameList,
       ),
       body: ListView(
         padding: const EdgeInsets.all(40),
