@@ -3,3 +3,8 @@ export 'game_list_screen.dart';
 export 'profile_screen.dart';
 export 'profile_edit_screen.dart';
 export 'error_screen.dart';
+export 'room_entry_screen.dart';
+export 'room_search_dialog.dart';
+export 'room_lobby_screen.dart';
+export 'best_match_screen.dart';
+export 'team_shuffle_screen.dart';
