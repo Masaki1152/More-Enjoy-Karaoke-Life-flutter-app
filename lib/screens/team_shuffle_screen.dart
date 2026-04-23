@@ -48,7 +48,7 @@ class _TeamShuffleScreenState extends State<TeamShuffleScreen> with SingleTicker
   Future<void> _init() async {
     myUserId = await store.getUserId();
     if (myUserId == null && mounted) {
-      context.go('/user/edit');
+      context.go('/profile_edit');
       return;
     }
 

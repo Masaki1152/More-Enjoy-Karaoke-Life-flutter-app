@@ -8,3 +8,7 @@ export 'room_search_dialog.dart';
 export 'room_lobby_screen.dart';
 export 'best_match_screen.dart';
 export 'team_shuffle_screen.dart';
+export 'game_result_screen.dart';
+export 'score_input_dialog.dart';
+export 'set_result_dialog.dart';
+export 'team_settings_screen.dart';

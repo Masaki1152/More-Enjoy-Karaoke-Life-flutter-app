@@ -43,6 +43,20 @@ final GoRouter router = GoRouter(
       },
     ),
     GoRoute(
+      path: '/room/:code/team-settings',
+      builder: (context, state) {
+        final code = state.pathParameters['code']!;
+        return TeamSettingsScreen(roomCode: code);
+      },
+    ),
+    GoRoute(
+      path: '/room/:code/result',
+      builder: (context, state) {
+        final code = state.pathParameters['code']!;
+        return GameResultScreen(roomCode: code);
+      },
+    ),
+    GoRoute(
       path: '/error',
       builder: (context, state) {
         final String? message = state.extra as String?;
