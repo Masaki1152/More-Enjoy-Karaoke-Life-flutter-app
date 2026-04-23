@@ -18,6 +18,45 @@ final GoRouter router = GoRouter(
       builder: (context, state) => const ProfileEditScreen(),
     ),
     GoRoute(
+      path: '/room-entry',
+      builder: (_, __) => const RoomEntryScreen(),
+    ),
+    GoRoute(
+      path: '/room/:code/lobby',
+      builder: (context, state) {
+        final code = state.pathParameters['code']!;
+        return RoomLobbyScreen(roomCode: code);
+      },
+    ),
+    GoRoute(
+      path: '/room/:code/shuffle',
+      builder: (context, state) {
+        final code = state.pathParameters['code']!;
+        return TeamShuffleScreen(roomCode: code);
+      },
+    ),
+    GoRoute(
+      path: '/room/:code/best-match',
+      builder: (context, state) {
+        final code = state.pathParameters['code']!;
+        return BestMatchScreen(roomCode: code);
+      },
+    ),
+    GoRoute(
+      path: '/room/:code/team-settings',
+      builder: (context, state) {
+        final code = state.pathParameters['code']!;
+        return TeamSettingsScreen(roomCode: code);
+      },
+    ),
+    GoRoute(
+      path: '/room/:code/result',
+      builder: (context, state) {
+        final code = state.pathParameters['code']!;
+        return GameResultScreen(roomCode: code);
+      },
+    ),
+    GoRoute(
       path: '/error',
       builder: (context, state) {
         final String? message = state.extra as String?;
