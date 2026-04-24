@@ -215,7 +215,10 @@ class _BestMatchScreenState extends State<BestMatchScreen> {
                         final result = await showDialog<ScoreInputResult>(
                           context: context,
                           builder: (_) => ScoreInputDialog(
+                            setLabel: 'セット ${set.setNo}',
                             displayName: turn.displayName,
+                            iconPath: turn.iconPath,
+                            isGuest: ru.userId == null,
                             initialSong: existingScore?.songName,
                             initialScore: existingScore?.scoreRaw,
                           ),
@@ -229,7 +232,7 @@ class _BestMatchScreenState extends State<BestMatchScreen> {
                             code: widget.roomCode,
                             setNo: set.setNo,
                             userId: ru.userId!, // ✅ user_id方式
-                            songName: result.songName,
+                            songName: result.songName ?? '',
                             scoreRaw: result.scoreRaw,
                           );
                           // 次ポーリングを待たずに即更新したいなら _pollOnce() を呼んでもOK
@@ -285,8 +288,12 @@ class _BestMatchScreenState extends State<BestMatchScreen> {
                         context: context,
                         builder: (_) => SetResultDialog(
                           setNo: set.setNo,
-                          computed: preview,
-                          hasBestMatch: hasBestMatchPreview(preview),
+                          results: preview.map((p) => SetResultItem(
+                            teamName: p.teamName,
+                            diff: p.diff,
+                            point: p.point,
+                            isBestMatch: p.isBestMatch,
+                          )).toList(),
                         ),
                       );
 

@@ -1,19 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:more_enjoy_karaoke_life/components/components.dart';
 
 class ScoreInputResult {
-  final String songName;
+  final String? songName;
   final String scoreRaw;
-  ScoreInputResult(this.songName, this.scoreRaw);
+  ScoreInputResult({this.songName, required this.scoreRaw});
 }
 
 class ScoreInputDialog extends StatefulWidget {
+  final String setLabel;
   final String displayName;
+  final String? iconPath;
+  final bool isGuest;
   final String? initialSong;
   final String? initialScore;
 
   const ScoreInputDialog({
     super.key,
+    required this.setLabel,
     required this.displayName,
+    required this.iconPath,
+    required this.isGuest,
     this.initialSong,
     this.initialScore,
   });
@@ -36,34 +43,61 @@ class _ScoreInputDialogState extends State<ScoreInputDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text('点数入力：${widget.displayName}'),
+      title: Text('${widget.setLabel} / 点数入力'),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          Row(
+            children: [
+              UserAvatar(iconPath: widget.iconPath, size: 40),
+              const SizedBox(width: 8),
+              Text(widget.displayName,
+                  style: const TextStyle(fontWeight: FontWeight.bold)),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // 曲名（ゲストは入力不可）
           TextField(
             controller: songController,
-            decoration: const InputDecoration(labelText: '曲名'),
+            enabled: !widget.isGuest,
+            decoration: InputDecoration(
+              labelText: '曲名',
+              hintText: widget.isGuest ? 'ゲストは入力不要' : null,
+            ),
           ),
+
           TextField(
             controller: scoreController,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: InputDecoration(labelText: '点数', errorText: error),
+            keyboardType:
+            const TextInputType.numberWithOptions(decimal: true),
+            decoration: InputDecoration(
+              labelText: '点数',
+              errorText: error,
+              hintText: '例：91.002',
+            ),
           ),
-          const SizedBox(height: 8),
-          const Text('例：91.002（小数第3位を使うよ）', style: TextStyle(fontSize: 12, color: Colors.grey)),
         ],
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('キャンセル')),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('キャンセル'),
+        ),
         ElevatedButton(
           onPressed: () {
-            final song = songController.text.trim();
             final score = scoreController.text.trim();
-            if (score.isEmpty || !_isValidScore(score)) {
+            if (!_isValidScore(score)) {
               setState(() => error = '点数の形式が違うかも（例：91.002）');
               return;
             }
-            Navigator.pop(context, ScoreInputResult(song, score));
+            Navigator.pop(
+              context,
+              ScoreInputResult(
+                songName: widget.isGuest ? null : songController.text.trim(),
+                scoreRaw: score,
+              ),
+            );
           },
           child: const Text('登録'),
         )

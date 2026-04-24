@@ -15,45 +15,35 @@ class GameResultScreen extends StatefulWidget {
 
 class _GameResultScreenState extends State<GameResultScreen> {
   late final api = RoomApi(ApiClient.instance.dio);
-  bool loading = true;
   RoomStateResponse? state;
-
-  Timer? timer;
-  int sinceVersion = 0;
+  bool loading = true;
 
   @override
   void initState() {
     super.initState();
-    _poll();
-    timer = Timer.periodic(const Duration(seconds: 2), (_) => _poll());
+    _load();
   }
 
-  @override
-  void dispose() {
-    timer?.cancel();
-    super.dispose();
-  }
-
-  Future<void> _poll() async {
-    final res = await api.fetchState(code: widget.roomCode, sinceVersion: sinceVersion);
+  Future<void> _load() async {
+    final res = await api.fetchState(code: widget.roomCode, sinceVersion: 0);
     if (!mounted) return;
-
-    if (res.changed) {
-      sinceVersion = res.version;
+    setState(() {
       state = res;
-    }
-    setState(() => loading = false);
+      loading = false;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    if (loading) return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    if (state == null) return const Scaffold(body: Center(child: Text('結果取得に失敗')));
+    if (loading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
 
-    final teams = [...state!.teams]..sort((a, b) => b.totalPoint.compareTo(a.totalPoint));
+    final teams = [...state!.teams]
+      ..sort((a, b) => b.totalPoint.compareTo(a.totalPoint));
 
     return Scaffold(
-      appBar: AppBar(title: Text('結果（${widget.roomCode}）')),
+      appBar: AppBar(title: const Text('ゲーム結果')),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -67,17 +57,20 @@ class _GameResultScreenState extends State<GameResultScreen> {
                     child: ListTile(
                       leading: CircleAvatar(child: Text('${i + 1}')),
                       title: Text(t.name),
-                      trailing: Text('${t.totalPoint} pt', style: const TextStyle(fontWeight: FontWeight.bold)),
+                      trailing: Text(
+                        '${t.totalPoint} pt',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
                     ),
                   );
                 },
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             ElevatedButton(
               onPressed: () => context.go('/room-entry'),
               child: const Text('ホームへ'),
-            )
+            ),
           ],
         ),
       ),
