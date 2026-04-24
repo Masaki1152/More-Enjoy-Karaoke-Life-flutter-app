@@ -9,7 +9,7 @@ class RoomApi {
 
   Future<String> createRoom({required int userId}) async {
     final res = await dio.post('/rooms', data: {'user_id': userId});
-    return res.data['code'] as String;
+    return res.data['data']['code'] as String;
   }
 
   Future<void> joinRoom({required String code, required int userId}) async {
@@ -97,6 +97,20 @@ class RoomApi {
         'room_user_id': roomUserId,
         'song_name': 'ゲスト（自動）',
         'score_raw': fakeScore,
+      },
+    );
+  }
+
+  Future<void> setAdmin({
+    required String code,
+    required int requestedBy,
+    required int newAdminUserId,
+  }) async {
+    await dio.post(
+      '/rooms/$code/set-admin',
+      data: {
+        'requested_by': requestedBy,
+        'new_admin_user_id': newAdminUserId,
       },
     );
   }

@@ -4,6 +4,8 @@ import '../services/api_client.dart';
 import '../services/room_api.dart';
 import '../services/user_local_store.dart';
 import 'room_search_dialog.dart';
+import 'package:more_enjoy_karaoke_life/components/components.dart';
+import 'package:more_enjoy_karaoke_life/conf/constantDev.dart';
 
 class RoomEntryScreen extends StatefulWidget {
   const RoomEntryScreen({super.key});
@@ -29,60 +31,62 @@ class _RoomEntryScreenState extends State<RoomEntryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('ルーム作成 / 参加')),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text('もっとEnjoy!カラオケLIFE', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 24),
+      appBar: CommonAppBar(title: 'ルーム作成 / 参加'),
+      body: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          children: [
+            GameCard(imagePath: ConstantDev.gameBestMatchIconPath, onTap: () {}),
+            const SizedBox(height: 32),
 
-              ElevatedButton(
-                onPressed: loading
-                    ? null
-                    : () async {
-                  setState(() => loading = true);
-                  try {
-                    final userId = await _requireUserId();
-                    if (userId == null) return;
-
-                    final code = await api.createRoom(userId: userId);
-                    if (!mounted) return;
-                    context.go('/room/$code/lobby');
-                  } catch (e) {
-                    if (!mounted) return;
-                    context.go('/error', extra: e.toString());
-                  } finally {
-                    if (mounted) setState(() => loading = false);
-                  }
-                },
-                child: loading ? const CircularProgressIndicator() : const Text('ルームを作成する'),
-              ),
-              const SizedBox(height: 12),
-
-              OutlinedButton(
-                onPressed: loading
-                    ? null
-                    : () async {
-                  final userId = await _requireUserId();
-                  if (userId == null) return;
-
-                  if (!context.mounted) return;
-                  showDialog(
-                    context: context,
-                    builder: (_) => RoomSearchDialog(
-                      onJoined: (code) {
-                        context.go('/room/$code/lobby');
-                      },
-                    ),
-                  );
-                },
-                child: const Text('ルームに参加する'),
-              ),
-            ],
-          ),
+            Row(
+              children: [
+                Expanded(
+                  child: SquareMenuButton(
+                    text: 'ルームを作成',
+                    onPressed: loading
+                        ? () {}
+                        : () async {
+                            setState(() => loading = true);
+                            try {
+                              final userId = await _requireUserId();
+                              if (userId == null) return;
+                              final code = await api.createRoom(userId: userId);
+                              if (!mounted) return;
+                              context.go('/room/$code/lobby');
+                            } catch (e) {
+                              if (!mounted) return;
+                              context.go('/error', extra: e.toString());
+                            } finally {
+                              if (mounted) setState(() => loading = false);
+                            }
+                          },
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: SquareMenuButton(
+                    text: 'ルームに参加',
+                    onPressed: loading
+                        ? () {}
+                        : () async {
+                            final userId = await _requireUserId();
+                            if (userId == null) return;
+                            if (!context.mounted) return;
+                            showDialog(
+                              context: context,
+                              builder: (_) => RoomSearchDialog(
+                                onJoined: (code) {
+                                  context.go('/room/$code/lobby');
+                                },
+                              ),
+                            );
+                          },
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );

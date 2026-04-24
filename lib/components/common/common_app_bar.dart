@@ -49,13 +49,13 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
                 if (imagePath != null && imagePath.isNotEmpty) {
                   // 画像パスがある場合
                   iconWidget = CircleAvatar(
-                    radius: 30,
+                    radius: 20,
                     backgroundImage: FileImage(File(imagePath)),
                     backgroundColor: Colors.transparent,
                   );
                 } else {
                   // パスがない、または取得中ならデフォルトアイコン
-                  iconWidget = const Icon(Icons.account_circle, size: 60);
+                  iconWidget = const Icon(Icons.account_circle, size: 40);
                 }
 
                 return IconButton(
@@ -72,7 +72,7 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
                     }
                   },
                   icon: iconWidget,
-                  iconSize: 60,
+                  iconSize: 40,
                   padding: EdgeInsets.zero,
                 );
               },
