@@ -30,17 +30,10 @@ class _TeamSettingsScreenState extends State<TeamSettingsScreen> {
     _init();
   }
 
-  @override
-  void dispose() {
-    for (final c in nameControllers.values) { c.dispose(); }
-    for (final c in colorControllers.values) { c.dispose(); }
-    super.dispose();
-  }
-
   Future<void> _init() async {
     myUserId = await store.getUserId();
     if (myUserId == null && mounted) {
-      context.go('/user/edit');
+      context.go('/profile_edit');
       return;
     }
 
@@ -55,14 +48,37 @@ class _TeamSettingsScreenState extends State<TeamSettingsScreen> {
     setState(() => loading = false);
   }
 
-  bool get isAdmin {
-    final room = state?.room;
-    return room != null && myUserId != null && room.adminUserId == myUserId;
+  int? myTeamId() {
+    if (state == null || myUserId == null) return null;
+    try {
+      final myRoomUser = state!.roomUsers
+          .where((ru) => ru.userId == myUserId)
+          .firstOrNull;
+
+      if (myRoomUser == null) return null;
+
+      final myTurn = state!.turns
+          .where((t) => t.roomUserId == myRoomUser.id)
+          .firstOrNull;
+
+      return myTurn?.teamId;
+    } catch (e) {
+      return null;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (loading) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (loading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    final teamId = myTeamId();
+    if (teamId == null) {
+      return const Scaffold(body: Center(child: Text('所属チームが見つかりません')));
+    }
+
+    final team = state!.teams.firstWhere((t) => t.id == teamId);
 
     return Scaffold(
       appBar: AppBar(title: const Text('チーム設定')),
@@ -70,68 +86,32 @@ class _TeamSettingsScreenState extends State<TeamSettingsScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            Text(isAdmin ? '管理者として編集できます' : '閲覧のみ（管理者のみ編集可能）'),
+            Text('あなたのチーム：${team.name}', style: const TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
-            Expanded(
-              child: ListView.builder(
-                itemCount: state!.teams.length,
-                itemBuilder: (_, i) {
-                  final team = state!.teams[i];
-                  final nameC = nameControllers[team.id]!;
-                  final colorC = colorControllers[team.id]!;
-
-                  return Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('チームID: ${team.id} / 現在ポイント: ${team.totalPoint}',
-                              style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                          const SizedBox(height: 8),
-                          TextField(
-                            controller: nameC,
-                            enabled: isAdmin,
-                            decoration: const InputDecoration(labelText: 'チーム名'),
-                          ),
-                          TextField(
-                            controller: colorC,
-                            enabled: isAdmin,
-                            decoration: const InputDecoration(labelText: 'カラー（例：#FFAA00）'),
-                          ),
-                          const SizedBox(height: 8),
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: ElevatedButton(
-                              onPressed: isAdmin
-                                  ? () async {
-                                try {
-                                  await api.updateTeam(
-                                    code: widget.roomCode,
-                                    teamId: team.id,
-                                    requestedBy: myUserId!,
-                                    name: nameC.text.trim().isEmpty ? team.name : nameC.text.trim(),
-                                    colorHex: colorC.text.trim().isEmpty ? null : colorC.text.trim(),
-                                  );
-                                  if (!mounted) return;
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('更新したよ！')),
-                                  );
-                                } catch (e) {
-                                  if (!mounted) return;
-                                  context.go('/error', extra: e.toString());
-                                }
-                              }
-                                  : null,
-                              child: const Text('保存'),
-                            ),
-                          )
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
+            TextField(
+              controller: nameControllers[team.id],
+              decoration: const InputDecoration(labelText: 'チーム名'),
+            ),
+            TextField(
+              controller: colorControllers[team.id],
+              decoration: const InputDecoration(labelText: 'カラー（例: #FFAA00）'),
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: () async {
+                await api.updateTeam(
+                  code: widget.roomCode,
+                  teamId: team.id,
+                  requestedBy: myUserId!,
+                  name: nameControllers[team.id]!.text,
+                  colorHex: colorControllers[team.id]!.text,
+                );
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('チーム設定を更新したよ！')),
+                );
+              },
+              child: const Text('保存'),
             )
           ],
         ),
