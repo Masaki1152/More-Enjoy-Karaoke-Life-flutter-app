@@ -198,7 +198,7 @@ class _BestMatchScreenState extends State<BestMatchScreen> {
                   else
                     _CurrentSetList(
                       set: set,
-                      turns: state!.turns, // サーバが交互順を返す
+                      turns: state!.turns,
                       findRoomUserById: findRoomUserById,
                       findScore: findScore,
                       onEdit: (turn, existingScore) async {
@@ -215,7 +215,10 @@ class _BestMatchScreenState extends State<BestMatchScreen> {
                         final result = await showDialog<ScoreInputResult>(
                           context: context,
                           builder: (_) => ScoreInputDialog(
+                            setLabel: 'セット ${set.setNo}',
                             displayName: turn.displayName,
+                            iconPath: turn.iconPath,
+                            isGuest: ru.userId == null,
                             initialSong: existingScore?.songName,
                             initialScore: existingScore?.scoreRaw,
                           ),
@@ -229,11 +232,27 @@ class _BestMatchScreenState extends State<BestMatchScreen> {
                             code: widget.roomCode,
                             setNo: set.setNo,
                             userId: ru.userId!, // ✅ user_id方式
-                            songName: result.songName,
+                            songName: result.songName ?? '',
                             scoreRaw: result.scoreRaw,
                           );
                           // 次ポーリングを待たずに即更新したいなら _pollOnce() を呼んでもOK
                           await _pollOnce();
+                        } catch (e) {
+                          if (!mounted) return;
+                          context.go('/error', extra: e.toString());
+                        } finally {
+                          if (mounted) setState(() => submitting = false);
+                        }
+                      },
+                      onRandom: (turn) async {
+                        setState(() => submitting = true);
+                        try {
+                          await api.upsertGuestRandomThirdDigit(
+                            code: widget.roomCode,
+                            setNo: set.setNo,
+                            roomUserId: turn.roomUserId,
+                          );
+                          await _pollOnce(); // 終わったら画面を更新！
                         } catch (e) {
                           if (!mounted) return;
                           context.go('/error', extra: e.toString());
@@ -269,8 +288,12 @@ class _BestMatchScreenState extends State<BestMatchScreen> {
                         context: context,
                         builder: (_) => SetResultDialog(
                           setNo: set.setNo,
-                          computed: preview,
-                          hasBestMatch: hasBestMatchPreview(preview),
+                          results: preview.map((p) => SetResultItem(
+                            teamName: p.teamName,
+                            diff: p.diff,
+                            point: p.point,
+                            isBestMatch: p.isBestMatch,
+                          )).toList(),
                         ),
                       );
 
@@ -386,6 +409,7 @@ class _CurrentSetList extends StatelessWidget {
   final RoomUserDto? Function(int roomUserId) findRoomUserById;
   final ScoreDto? Function(int setId, int roomUserId) findScore;
   final Future<void> Function(TurnDto turn, ScoreDto? existingScore) onEdit;
+  final Future<void> Function(TurnDto turn) onRandom;
 
   const _CurrentSetList({
     required this.set,
@@ -393,6 +417,7 @@ class _CurrentSetList extends StatelessWidget {
     required this.findRoomUserById,
     required this.findScore,
     required this.onEdit,
+    required this.onRandom,
   });
 
   @override
@@ -418,7 +443,12 @@ class _CurrentSetList extends StatelessWidget {
                     ? '未入力'
                     : '点数: ${score.scoreRaw}（3桁目: ${score.thirdDigit}）\n曲: ${score.songName ?? "-"}',
               ),
-              trailing: IconButton(
+              trailing: ru?.userId == null
+                  ? IconButton(
+                icon: const Icon(Icons.casino, color: Colors.purple),
+                onPressed: () => onRandom(turn),
+              )
+                  : IconButton(
                 icon: const Icon(Icons.edit),
                 onPressed: () => onEdit(turn, score),
               ),

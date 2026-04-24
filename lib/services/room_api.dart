@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import '../models/room_state_models.dart';
+import 'dart:math';
 
 class RoomApi {
   RoomApi(this.dio);
@@ -78,6 +79,24 @@ class RoomApi {
         'name': name,
         'color_hex': colorHex,
         'image_path': imagePath,
+      },
+    );
+  }
+
+  Future<void> upsertGuestRandomThirdDigit({
+    required String code,
+    required int setNo,
+    required int roomUserId,
+  }) async {
+    final rand = Random().nextInt(10); // 0〜9
+    final fakeScore = '0.00$rand';
+
+    await dio.post(
+      '/rooms/$code/sets/$setNo/scores',
+      data: {
+        'room_user_id': roomUserId,
+        'song_name': 'ゲスト（自動）',
+        'score_raw': fakeScore,
       },
     );
   }
