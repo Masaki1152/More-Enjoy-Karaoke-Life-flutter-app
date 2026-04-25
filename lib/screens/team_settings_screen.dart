@@ -172,8 +172,9 @@ class _TeamSettingsScreenState extends State<TeamSettingsScreen> {
                       colorHex: _selectedColorHex,
                     );
                     if (!mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('チーム設定を更新したよ！')),
+                    showCustomSnackBar(
+                      context,
+                      message: 'チーム設定を保存しました',
                     );
                   } catch (e) {
                     ScaffoldMessenger.of(context).showSnackBar(

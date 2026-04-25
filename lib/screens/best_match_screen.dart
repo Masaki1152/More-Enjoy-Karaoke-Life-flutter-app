@@ -296,7 +296,11 @@ class _BestMatchScreenState extends State<BestMatchScreen> {
                             roomUserId: turn.roomUserId,
                             requestedBy: myUserId!,
                           );
-                          await _pollOnce(); // 終わったら画面を更新！
+                          await _pollOnce();
+                          showCustomSnackBar(
+                            context,
+                            message: 'ゲストの数字を自動生成しました',
+                          );
                         } catch (e) {
                           if (!mounted) return;
                           context.go('/error', extra: e.toString());
@@ -366,6 +370,10 @@ class _BestMatchScreenState extends State<BestMatchScreen> {
                                 requestedBy: myUserId!,
                               );
                               await _pollOnce();
+                              showCustomSnackBar(
+                                context,
+                                message: 'セットを確定しました！次のセットへ！',
+                              );
                             } catch (e) {
                               if (!mounted) return;
                               context.go('/error', extra: e.toString());

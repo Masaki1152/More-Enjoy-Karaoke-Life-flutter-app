@@ -121,6 +121,10 @@ class _ScoreInputDialogState extends State<ScoreInputDialog> {
                 scoreRaw: score,
               ),
             );
+            showCustomSnackBar(
+              context,
+              message: '点数を登録しました',
+            );
           },
           style: OutlinedButton.styleFrom(
             side: const BorderSide(color: Colors.lightBlue),
