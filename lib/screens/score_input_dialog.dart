@@ -100,7 +100,7 @@ class _ScoreInputDialogState extends State<ScoreInputDialog> {
               : () async {
             final score = scoreController.text.trim();
             if (!_isValidScore(score)) {
-              setState(() => error = '点数の形式が違うかも（例：91.002）');
+              setState(() => error = '点数の形式が正しくありません（例：91.002）');
               return;
             }
 
