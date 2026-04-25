@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:more_enjoy_karaoke_life/components/common/common_app_bar.dart';
 import '../services/api_client.dart';
 import '../services/room_api.dart';
 import '../services/user_local_store.dart';
@@ -81,7 +82,7 @@ class _TeamSettingsScreenState extends State<TeamSettingsScreen> {
     final team = state!.teams.firstWhere((t) => t.id == teamId);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('チーム設定')),
+      appBar: CommonAppBar(title: 'チーム設定'),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(

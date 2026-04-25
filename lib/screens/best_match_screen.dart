@@ -69,16 +69,22 @@ class _BestMatchScreenState extends State<BestMatchScreen> {
 
       // statusで自動遷移
       final room = state?.room;
-      if (room != null && room.status == 'finished') {
-        context.go('/room/${widget.roomCode}/result');
+      if (room == null) return;
+
+      if (room.status == 'finished') {
+        timer?.cancel();
+        context.push('/room/${widget.roomCode}/result');
+        return;
       }
-      if (room != null && room.status != 'playing') {
-        // playing以外に戻ったらロビーへ
-        context.go('/room/${widget.roomCode}/lobby');
+
+      if (room.status != 'playing' && room.status != 'finished') {
+        timer?.cancel();
+        context.push('/room/${widget.roomCode}/lobby');
+        return;
       }
     } catch (e) {
       if (!mounted) return;
-      context.go('/error', extra: e.toString());
+      context.push('/error', extra: e.toString());
     }
   }
 
@@ -171,7 +177,12 @@ class _BestMatchScreenState extends State<BestMatchScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('ベストマッチ（${widget.roomCode}）'),
+        toolbarHeight: 100,
+        title: Text(
+          'ベストマッチ（${widget.roomCode}）',
+          style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900),
+        ),
+        centerTitle: true,
         actions: [
           IconButton(
             onPressed: () => context.go('/room/${widget.roomCode}/team-settings'),

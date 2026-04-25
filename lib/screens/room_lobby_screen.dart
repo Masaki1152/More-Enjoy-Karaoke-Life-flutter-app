@@ -71,21 +71,26 @@ class _RoomLobbyScreenState extends State<RoomLobbyScreen> {
         }
       }
 
+      final room = state?.room;
+      if (room == null) return;
+
+      if (room.status == 'playing') {
+        timer?.cancel();
+        context.go('/room/${widget.roomCode}/best-match');
+        return;
+      }
+
+      if (room.status == 'finished') {
+        timer?.cancel();
+        context.go('/room-entry');
+        return;
+      }
+
       loading = false;
       setState(() {});
-
-      // ✅ statusで遷移（全員同期）
-      final room = state?.room;
-      if (room != null && room.status == 'playing') {
-        context.go('/room/${widget.roomCode}/best-match');
-      }
-      if (room != null && room.status == 'finished') {
-        // いずれ結果画面へ。今は仮でEntryへ戻す
-        context.go('/room-entry');
-      }
     } catch (e) {
       if (!mounted) return;
-      context.go('/error', extra: e.toString());
+      context.push('/error', extra: e.toString());
     }
   }
 
@@ -166,7 +171,7 @@ class _RoomLobbyScreenState extends State<RoomLobbyScreen> {
                     await _pollOnce();
                   } catch (e) {
                     if (!mounted) return;
-                    context.go('/error', extra: e.toString());
+                    context.push('/error', extra: e.toString());
                   } finally {
                     if (mounted) setState(() => adminChanging = false);
                   }
