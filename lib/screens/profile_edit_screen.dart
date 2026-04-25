@@ -46,30 +46,39 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
 
   Future<void> _pickAndCropImage() async {
     try {
-      final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+      final XFile? pickedFile = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 85,
+      );
 
       if (pickedFile != null) {
         final croppedFile = await ImageCropper().cropImage(
-          sourcePath: pickedFile.path,
-          aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
-          uiSettings: [
-            AndroidUiSettings(
-              toolbarTitle: '切り抜き',
-              toolbarColor: Colors.lightBlue,
-              toolbarWidgetColor: Colors.white,
-              lockAspectRatio: true,
-              cropStyle: CropStyle.circle,
-            ),
-            IOSUiSettings(
-              title: '切り抜き',
-              aspectRatioLockEnabled: true,
-              cropStyle: CropStyle.circle,
-            ),
-          ],
+            sourcePath: pickedFile.path,
+            aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
+            compressFormat: ImageCompressFormat.jpg,
+            compressQuality: 80,
+            maxWidth: 512,
+            maxHeight: 512,
+            uiSettings: [
+                AndroidUiSettings(
+                    toolbarTitle: '切り抜き',
+                    toolbarColor: Colors.lightBlue,
+                    toolbarWidgetColor: Colors.white,
+                    lockAspectRatio: true,
+                    cropStyle: CropStyle.circle,
+                ),
+                IOSUiSettings(
+                    title: '切り抜き',
+                    aspectRatioLockEnabled: true,
+                    cropStyle: CropStyle.circle,
+                ),
+            ],
         );
 
         if (croppedFile != null) {
-          setState(() => _imagePath = croppedFile.path);
+            setState(() => _imagePath = croppedFile.path);
         }
       }
     } catch (e) {

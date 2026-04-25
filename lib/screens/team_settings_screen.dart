@@ -76,10 +76,20 @@ class _TeamSettingsScreenState extends State<TeamSettingsScreen> {
 
   int? _getMyTeamId() {
     if (state == null || myUserId == null) return null;
-    final myRoomUser = state!.roomUsers.where((ru) => ru.userId == myUserId).firstOrNull;
-    if (myRoomUser == null) return null;
-    final myTurn = state!.turns.where((t) => t.roomUserId == myRoomUser.id).firstOrNull;
-    return myTurn?.teamId;
+
+      // 1. まず、自分の roomUser を探す
+      final myRoomUser = state!.roomUsers.firstWhereOrNull((ru) => ru.userId == myUserId);
+      if (myRoomUser == null) return null;
+
+      // 2. turns ではなく、全チームの中から自分がメンバーに含まれているチームを直接探す
+      // (TeamDto に members が含まれている前提、もしくはこちらの判定の方が確実です)
+      final myTeam = state!.teams.firstWhereOrNull((team) {
+        // チームに紐づくメンバーの中に、自分の roomUserId があるかチェック
+        // ※ state!.turns を使う場合は、現在のセット番号を考慮するようにします
+        return state!.turns.any((t) => t.teamId == team.id && t.roomUserId == myRoomUser.id);
+      });
+
+      return myTeam?.id;
   }
 
   @override

@@ -22,7 +22,7 @@ class HomeScreen extends StatelessWidget {
           Center(
             child: SingleChildScrollView(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 60),
+                padding: const EdgeInsets.symmetric(horizontal: 10),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -39,7 +39,7 @@ class HomeScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           SizedBox(
-                            height: 80,
+                            height: 60,
                             child: CommonButton(
                               text: t.common.start,
                               onPressed: () => context.push('/game_list'),
@@ -47,7 +47,7 @@ class HomeScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: 24),
                           SizedBox(
-                            height: 80,
+                            height: 60,
                             child: CommonButton(
                               text: t.common.aboutApp,
                               onPressed: () {

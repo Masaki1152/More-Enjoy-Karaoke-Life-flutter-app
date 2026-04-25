@@ -14,7 +14,7 @@ class GameListScreen extends StatelessWidget {
         title: t.game.gameList,
       ),
       body: ListView(
-        padding: const EdgeInsets.all(40),
+        padding: const EdgeInsets.all(20),
         children: [
           // カラオケベストマッチ
           GameCard(

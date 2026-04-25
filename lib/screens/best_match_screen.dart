@@ -125,14 +125,17 @@ class _BestMatchScreenState extends State<BestMatchScreen> {
 
   bool allScoresEnteredForCurrentSet() {
     final set = currentSet;
-    if (set == null) return false;
+      if (set == null || state == null) return false;
 
-    // ⚠️ ゲストがいると user_id 方式では入力できず confirm に失敗する可能性あり
-    // MVP: ゲストがいたら false にして警告を出す
-    final totalUsers = state?.roomUsers.length ?? 0;
-    final enteredScores = set.scores.length;
+      // ✅ 部屋の全人数ではなく、このセットのターンの数を取得する
+      final currentSetTurns = state!.turns.where((t) => t.setNo == set.setNo).toList();
 
-    return enteredScores >= totalUsers;
+      if (currentSetTurns.isEmpty) return false;
+
+      final totalNeeded = currentSetTurns.length;
+      final enteredScores = set.scores.length;
+
+      return enteredScores >= totalNeeded;
   }
 
   /// フロント側で結果を“予測”してダイアログに出す（サーバ確定前）
@@ -303,7 +306,7 @@ class _BestMatchScreenState extends State<BestMatchScreen> {
                           );
                         } catch (e) {
                           if (!mounted) return;
-                          context.go('/error', extra: e.toString());
+                          context.push('/error', extra: e.toString());
                         } finally {
                           if (mounted) setState(() => submitting = false);
                         }

@@ -11,7 +11,7 @@ class GameUtils {
 
     if (userName == null || userName.isEmpty) {
       // 未登録の場合はプロフィール登録画面に遷移
-      if (context.mounted) context.push('/profile');
+      if (context.mounted) context.push('/profile_edit');
     } else {
       // 登録済みの場合
       if (context.mounted) context.push(targetPath);

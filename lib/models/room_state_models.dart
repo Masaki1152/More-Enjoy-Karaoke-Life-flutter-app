@@ -113,11 +113,13 @@ class UserDto {
   final int id;
   final String name;
   final String? iconPath;
+  final String? birthday;
 
   UserDto({
     required this.id,
     required this.name,
     required this.iconPath,
+    required this.birthday,
   });
 
   factory UserDto.fromJson(Map<String, dynamic> json) {
@@ -125,6 +127,7 @@ class UserDto {
       id: (json['id'] ?? 0) as int,
       name: (json['name'] ?? '') as String,
       iconPath: json['icon_path'] as String?,
+      birthday: json['birthday'] as String?,
     );
   }
 }

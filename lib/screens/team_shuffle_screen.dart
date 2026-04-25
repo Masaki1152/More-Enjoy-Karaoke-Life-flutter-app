@@ -68,6 +68,27 @@ class _TeamShuffleScreenState extends State<TeamShuffleScreen> with SingleTicker
     return room.adminUserId == myUserId;
   }
 
+  List<RoomUserDto> _applySpecialSort(List<RoomUserDto> members) {
+    // 1. 対象の2人を抽出
+    final specialPair = members.where((m) {
+      final bday = m.user?.birthday;
+      if (bday == null) return false;
+      // Laravel側と同じ日付をチェック (フォーマットに合わせて調整してください)
+      return bday.contains('05-02') || bday.contains('01-11');
+    }).toList();
+
+    // 2. もし2人とも揃っていたら「八百長」発動
+    if (specialPair.length == 2) {
+      // 残りのメンバーを取得してシャッフル
+      final others = members.where((m) => !specialPair.contains(m)).toList()..shuffle();
+      // 先頭に特定の2人を置いて、残りを結合（これでこの2人がチーム1になる）
+      return [...specialPair, ...others];
+    }
+
+    // 3. 揃っていなければ普通のランダム
+    return members..shuffle();
+  }
+
   Future<void> playShuffleAnimation() async {
     if (state == null) return;
 
@@ -100,22 +121,31 @@ class _TeamShuffleScreenState extends State<TeamShuffleScreen> with SingleTicker
     animTimer?.cancel();
     final completer = Completer<void>();
     animTimer = Timer.periodic(const Duration(milliseconds: 120), (t) {
-      previewMembers.shuffle(rand);
       tick++;
+
       if (tick >= 18) {
         t.cancel();
+
+        // ✅ ここで「ランダム」ではなく「八百長ロジック」を適用したリストを作る
+        final sortedMembers = _applySpecialSort(List<RoomUserDto>.from(previewMembers));
+
         // 2人ずつのチームに分割してプレビュー表示
         previewTeams = [];
-        for (int i = 0; i < previewMembers.length; i += 2) {
-          previewTeams.add([previewMembers[i], previewMembers[i + 1]]);
+        for (int i = 0; i < sortedMembers.length; i += 2) {
+          previewTeams.add([sortedMembers[i], sortedMembers[i + 1]]);
         }
+
         setState(() {
+          previewMembers = sortedMembers; // 画面表示用リストも更新
           shuffling = false;
           previewReady = true;
         });
         completer.complete();
       } else {
-        setState(() {});
+        // 途中経過（17回目まで）は完全にランダムに見せる
+        setState(() {
+          previewMembers.shuffle();
+        });
       }
     });
 
