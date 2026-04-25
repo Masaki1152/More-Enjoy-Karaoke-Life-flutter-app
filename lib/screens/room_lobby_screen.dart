@@ -177,7 +177,7 @@ class _RoomLobbyScreenState extends State<RoomLobbyScreen> {
               const SizedBox(height: 12),
               ElevatedButton(
                 onPressed: () {
-                  context.go('/room/${widget.roomCode}/shuffle');
+                  context.push('/room/${widget.roomCode}/shuffle');
                 },
                 child: const Text('チーム分け画面へ'),
               ),
