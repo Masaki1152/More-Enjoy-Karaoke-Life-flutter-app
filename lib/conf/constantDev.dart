@@ -2,7 +2,7 @@ class ConstantDev {
   ConstantDev._();
 
   // APIのbaseURL
-  static const String baseUrl = 'https://karaokelife.skr.jp/api';
+  static const String baseUrl = 'https://karaokelife.skr.jp';
   // アプリのホームアイコンのパス
   static const String appHomeIconPath = 'assets/images/app_home_icon.png';
   // アプリのホームアイコンのパス

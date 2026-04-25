@@ -22,7 +22,7 @@ class _RoomEntryScreenState extends State<RoomEntryScreen> {
   Future<int?> _requireUserId() async {
     final userId = await store.getUserId();
     if (userId == null && mounted) {
-      context.go('/profile_edit');
+      context.push('/profile_edit');
       return null;
     }
     return userId;
@@ -53,10 +53,10 @@ class _RoomEntryScreenState extends State<RoomEntryScreen> {
                               if (userId == null) return;
                               final code = await api.createRoom(userId: userId);
                               if (!mounted) return;
-                              context.go('/room/$code/lobby');
+                              context.push('/room/$code/lobby');
                             } catch (e) {
                               if (!mounted) return;
-                              context.go('/error', extra: e.toString());
+                              context.push('/error', extra: e.toString());
                             } finally {
                               if (mounted) setState(() => loading = false);
                             }
@@ -77,7 +77,7 @@ class _RoomEntryScreenState extends State<RoomEntryScreen> {
                               context: context,
                               builder: (_) => RoomSearchDialog(
                                 onJoined: (code) {
-                                  context.go('/room/$code/lobby');
+                                  context.push('/room/$code/lobby');
                                 },
                               ),
                             );

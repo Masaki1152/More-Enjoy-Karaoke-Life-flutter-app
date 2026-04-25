@@ -51,7 +51,46 @@ class _RoomSearchDialogState extends State<RoomSearchDialog> {
         ),
         const SizedBox(width: 16),
         OutlinedButton(
-          onPressed: loading ? null : () async {},
+          onPressed: loading ? null : () async {
+            // 1. バリデーションと準備
+            final code = controller.text.trim();
+            if (!_isValidCode(code)) {
+              setState(() => errorText = '4桁の数字で入力してください。');
+              return;
+            }
+
+            final userId = await store.getUserId();
+            if (userId == null) {
+              setState(() => errorText = 'ユーザー登録が必要です。');
+              return;
+            }
+
+            setState(() {
+              loading = true;
+              errorText = null;
+            });
+
+            FocusScope.of(context).unfocus();
+
+            try {
+              // 3. API実行
+              await api.joinRoom(code: code, userId: userId);
+
+              if (!mounted) return;
+
+              // 4. 成功時の処理
+              Navigator.pop(context);
+              widget.onJoined(code);
+            } catch (e) {
+              // 5. 失敗時の処理
+              if (!mounted) return;
+              setState(() => errorText = 'ルームが見つかりません。');
+            } finally {
+              if (mounted) {
+                setState(() => loading = false);
+              }
+            }
+          },
           style: OutlinedButton.styleFrom(
             side: const BorderSide(color: Colors.lightBlue),
           ),

@@ -28,6 +28,7 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return AppBar(
       toolbarHeight: 100,
+      automaticallyImplyLeading: true,
       title: showTitle
           ? Text(
         title,

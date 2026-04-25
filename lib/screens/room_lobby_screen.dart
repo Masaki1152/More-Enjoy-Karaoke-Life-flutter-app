@@ -95,8 +95,8 @@ class _RoomLobbyScreenState extends State<RoomLobbyScreen> {
     final isAdmin = (room != null && myUserId != null && room.adminUserId == myUserId);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text('ルーム ${widget.roomCode}'),
+      appBar: CommonAppBar(
+        title: 'ルーム ${widget.roomCode}',
       ),
       body: loading
           ? const Center(child: CircularProgressIndicator())
@@ -110,16 +110,18 @@ class _RoomLobbyScreenState extends State<RoomLobbyScreen> {
             Text('ステータス：${room?.status}', style: const TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
             const Text('参加者一覧', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             Expanded(
               child: ListView.builder(
                 itemCount: state!.roomUsers.length,
                 itemBuilder: (_, i) {
                   final ru = state!.roomUsers[i];
-                  return ListTile(
-                    leading: UserAvatar(iconPath: ru.isGuest ? ru.guestIconPath : ru.user?.iconPath),
-                    title: Text(ru.displayName()),
-                    subtitle: Text(ru.isGuest ? 'ゲスト' : 'ユーザーID: ${ru.userId ?? '-'}'),
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 8.0),
+                    child: UserListCell(
+                      iconPath: ru.isGuest ? ru.guestIconPath : ru.user?.iconPath,
+                      userName: ru.displayName(),
+                    ),
                   );
                 },
               ),
