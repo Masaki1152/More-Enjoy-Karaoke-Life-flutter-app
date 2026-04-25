@@ -14,6 +14,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final storage = const FlutterSecureStorage();
   String? _name;
   String? _imagePath;
+  String? _birthday;
   bool _isLoading = true;
 
   @override
@@ -26,9 +27,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _loadProfile() async {
     final name = await storage.read(key: 'user_name');
     final image = await storage.read(key: 'user_icon_path');
+    final birthday = await storage.read(key: 'birthday');
     setState(() {
       _name = name;
       _imagePath = image;
+      _birthday = birthday;
       _isLoading = false;
     });
   }
@@ -70,6 +73,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const Text('名前（ニックネーム）', style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             Text(_name ?? '', style: const TextStyle(fontSize: 18)),
+
+            const SizedBox(height: 40),
+
+            const Text('誕生日', style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            Text(
+              _birthday != null
+                  ? '${DateTime.parse(_birthday!).year}年${DateTime.parse(_birthday!).month}月${DateTime.parse(_birthday!).day}日'
+                  : '',
+              style: const TextStyle(fontSize: 18),
+            ),
 
             const SizedBox(height: 40),
 

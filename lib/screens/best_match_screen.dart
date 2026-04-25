@@ -10,9 +10,11 @@ import 'package:more_enjoy_karaoke_life/components/components.dart';
 import 'package:collection/collection.dart';
 import 'score_input_dialog.dart';
 import 'set_result_dialog.dart';
+import 'package:more_enjoy_karaoke_life/components/components.dart';
 
 class BestMatchScreen extends StatefulWidget {
   final String roomCode;
+
   const BestMatchScreen({super.key, required this.roomCode});
 
   @override
@@ -55,7 +57,10 @@ class _BestMatchScreenState extends State<BestMatchScreen> {
 
   Future<void> _pollOnce() async {
     try {
-      final res = await api.fetchState(code: widget.roomCode, sinceVersion: sinceVersion);
+      final res = await api.fetchState(
+        code: widget.roomCode,
+        sinceVersion: sinceVersion,
+      );
 
       if (!mounted) return;
 
@@ -69,16 +74,22 @@ class _BestMatchScreenState extends State<BestMatchScreen> {
 
       // statusで自動遷移
       final room = state?.room;
-      if (room != null && room.status == 'finished') {
-        context.go('/room/${widget.roomCode}/result');
+      if (room == null) return;
+
+      if (room.status == 'finished') {
+        timer?.cancel();
+        context.push('/room/${widget.roomCode}/result');
+        return;
       }
-      if (room != null && room.status != 'playing') {
-        // playing以外に戻ったらロビーへ
-        context.go('/room/${widget.roomCode}/lobby');
+
+      if (room.status != 'playing' && room.status != 'finished') {
+        timer?.cancel();
+        context.push('/room/${widget.roomCode}/lobby');
+        return;
       }
     } catch (e) {
       if (!mounted) return;
-      context.go('/error', extra: e.toString());
+      context.push('/error', extra: e.toString());
     }
   }
 
@@ -90,7 +101,10 @@ class _BestMatchScreenState extends State<BestMatchScreen> {
   RoomSetDto? get currentSet {
     if (state == null) return null;
     final setNo = state!.room?.currentSetNo ?? 1;
-    return state!.sets.where((s) => s.setNo == setNo).cast<RoomSetDto?>().firstWhere((e) => true, orElse: () => null);
+    return state!.sets
+        .where((s) => s.setNo == setNo)
+        .cast<RoomSetDto?>()
+        .firstWhere((e) => true, orElse: () => null);
   }
 
   RoomUserDto? findRoomUserById(int roomUserId) {
@@ -104,7 +118,7 @@ class _BestMatchScreenState extends State<BestMatchScreen> {
   }
 
   List<TeamDto> topTeams(int n) {
-    final teams = [...(state?.teams ?? [])];
+    final List<TeamDto> teams = [...(state?.teams ?? [])];
     teams.sort((a, b) => b.totalPoint.compareTo(a.totalPoint));
     return teams.take(n).toList();
   }
@@ -115,10 +129,10 @@ class _BestMatchScreenState extends State<BestMatchScreen> {
 
     // ⚠️ ゲストがいると user_id 方式では入力できず confirm に失敗する可能性あり
     // MVP: ゲストがいたら false にして警告を出す
-    final hasGuest = (state?.roomUsers.any((ru) => ru.userId == null) ?? false);
-    if (hasGuest) return false;
+    final totalUsers = state?.roomUsers.length ?? 0;
+    final enteredScores = set.scores.length;
 
-    return set.scores.length >= (state?.roomUsers.length ?? 0);
+    return enteredScores >= totalUsers;
   }
 
   /// フロント側で結果を“予測”してダイアログに出す（サーバ確定前）
@@ -142,7 +156,9 @@ class _BestMatchScreenState extends State<BestMatchScreen> {
       diffMap[t.id] = (a - b).abs();
     }
 
-    final minDiff = diffMap.values.isEmpty ? 0 : diffMap.values.reduce((a, b) => a < b ? a : b);
+    final minDiff = diffMap.values.isEmpty
+        ? 0
+        : diffMap.values.reduce((a, b) => a < b ? a : b);
     final hasBestMatch = diffMap.values.any((d) => d == 0);
 
     final results = <ComputedSetResult>[];
@@ -150,7 +166,15 @@ class _BestMatchScreenState extends State<BestMatchScreen> {
       final diff = diffMap[t.id] ?? 0;
       final isBest = diff == 0;
       final point = hasBestMatch ? (isBest ? 5 : 0) : (diff == minDiff ? 1 : 0);
-      results.add(ComputedSetResult(teamId: t.id, teamName: t.name, diff: diff, point: point, isBestMatch: isBest));
+      results.add(
+        ComputedSetResult(
+          teamId: t.id,
+          teamName: t.name,
+          diff: diff,
+          point: point,
+          isBestMatch: isBest,
+        ),
+      );
     }
 
     // 表示を“ポイント降順”
@@ -158,12 +182,15 @@ class _BestMatchScreenState extends State<BestMatchScreen> {
     return results;
   }
 
-  bool hasBestMatchPreview(List<ComputedSetResult> computed) => computed.any((e) => e.isBestMatch);
+  bool hasBestMatchPreview(List<ComputedSetResult> computed) =>
+      computed.any((e) => e.isBestMatch);
 
   @override
   Widget build(BuildContext context) {
-    if (loading) return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    if (state == null) return const Scaffold(body: Center(child: Text('状態取得に失敗')));
+    if (loading)
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (state == null)
+      return const Scaffold(body: Center(child: Text('状態取得に失敗')));
 
     final room = state!.room!;
     final set = currentSet;
@@ -171,12 +198,18 @@ class _BestMatchScreenState extends State<BestMatchScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('ベストマッチ（${widget.roomCode}）'),
+        toolbarHeight: 100,
+        title: Text(
+          'ベストマッチ（${widget.roomCode}）',
+          style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900),
+        ),
+        centerTitle: true,
         actions: [
           IconButton(
-            onPressed: () => context.go('/room/${widget.roomCode}/team-settings'),
+            onPressed: () =>
+                context.push('/room/${widget.roomCode}/team-settings'),
             icon: const Icon(Icons.settings),
-          )
+          ),
         ],
       ),
       body: Padding(
@@ -190,15 +223,22 @@ class _BestMatchScreenState extends State<BestMatchScreen> {
             Expanded(
               child: ListView(
                 children: [
-                  Text('現在セット：${room.currentSetNo}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 8),
-
                   if (set == null)
-                    const Text('セット情報がありません（サーバがsetを作っていない可能性）')
-                  else
+                    const Text('セットを準備中...')
+                  else ...[
+                    Text(
+                      '進行中のセット：${set.setNo}',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
                     _CurrentSetList(
                       set: set,
-                      turns: state!.turns,
+                      turns: state!.turns
+                          .where((t) => t.setNo == set.setNo)
+                          .toList(),
                       findRoomUserById: findRoomUserById,
                       findScore: findScore,
                       onEdit: (turn, existingScore) async {
@@ -207,7 +247,9 @@ class _BestMatchScreenState extends State<BestMatchScreen> {
                         if (ru == null) return;
                         if (ru.userId == null) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('ゲストの点数入力はMVPでは未対応（偶数人数で遊んでね）')),
+                            const SnackBar(
+                              content: Text('ゲストの点数入力はMVPでは未対応（偶数人数で遊んでね）'),
+                            ),
                           );
                           return;
                         }
@@ -231,7 +273,8 @@ class _BestMatchScreenState extends State<BestMatchScreen> {
                           await api.upsertScore(
                             code: widget.roomCode,
                             setNo: set.setNo,
-                            userId: ru.userId!, // ✅ user_id方式
+                            roomUserId: ru.id,
+                            requestedBy: myUserId!,
                             songName: result.songName ?? '',
                             scoreRaw: result.scoreRaw,
                           );
@@ -239,7 +282,7 @@ class _BestMatchScreenState extends State<BestMatchScreen> {
                           await _pollOnce();
                         } catch (e) {
                           if (!mounted) return;
-                          context.go('/error', extra: e.toString());
+                          context.push('/error', extra: e.toString());
                         } finally {
                           if (mounted) setState(() => submitting = false);
                         }
@@ -251,6 +294,7 @@ class _BestMatchScreenState extends State<BestMatchScreen> {
                             code: widget.roomCode,
                             setNo: set.setNo,
                             roomUserId: turn.roomUserId,
+                            requestedBy: myUserId!,
                           );
                           await _pollOnce(); // 終わったら画面を更新！
                         } catch (e) {
@@ -261,14 +305,18 @@ class _BestMatchScreenState extends State<BestMatchScreen> {
                         }
                       },
                     ),
+                  ],
 
-                  const SizedBox(height: 12),
-                  const Divider(),
+                  const SizedBox(height: 24),
+                  const Divider(thickness: 2),
 
                   // ✅ 過去セット一覧（結果があれば表示）
-                  const Text('履歴', style: TextStyle(fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 8),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8.0),
+                    child: Text('これまでの履歴', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.grey)),
+                  ),
                   ..._buildHistoryCards(state!.sets, state!.teams),
+                  const SizedBox(height: 80),
                 ],
               ),
             ),
@@ -279,60 +327,77 @@ class _BestMatchScreenState extends State<BestMatchScreen> {
             Row(
               children: [
                 Expanded(
-                  child: ElevatedButton(
-                    onPressed: (!isAdmin || set == null || !allScoresEnteredForCurrentSet() || submitting)
+                  child: CommonButton(
+                    text: '確定',
+                    // isAdmin かつ 全員入力済み かつ 通信中でない場合のみ関数を渡す
+                    onPressed:
+                        (!isAdmin ||
+                            set == null ||
+                            !allScoresEnteredForCurrentSet() ||
+                            submitting)
                         ? null
                         : () async {
-                      final preview = computePreviewResultsForCurrentSet();
-                      final ok = await showDialog<bool>(
-                        context: context,
-                        builder: (_) => SetResultDialog(
-                          setNo: set.setNo,
-                          results: preview.map((p) => SetResultItem(
-                            teamName: p.teamName,
-                            diff: p.diff,
-                            point: p.point,
-                            isBestMatch: p.isBestMatch,
-                          )).toList(),
-                        ),
-                      );
+                            final preview =
+                                computePreviewResultsForCurrentSet();
+                            final ok = await showDialog<bool>(
+                              context: context,
+                              builder: (_) => SetResultDialog(
+                                setNo: set.setNo,
+                                results: preview
+                                    .map(
+                                      (p) => SetResultItem(
+                                        teamName: p.teamName,
+                                        diff: p.diff,
+                                        point: p.point,
+                                        isBestMatch: p.isBestMatch,
+                                      ),
+                                    )
+                                    .toList(),
+                              ),
+                            );
 
-                      if (ok != true) return;
+                            if (ok != true) return;
 
-                      setState(() => submitting = true);
-                      try {
-                        await api.confirmSet(code: widget.roomCode, setNo: set.setNo, requestedBy: myUserId!);
-                        await _pollOnce();
-                      } catch (e) {
-                        if (!mounted) return;
-                        context.go('/error', extra: e.toString());
-                      } finally {
-                        if (mounted) setState(() => submitting = false);
-                      }
-                    },
-                    child: const Text('確定'),
+                            setState(() => submitting = true);
+                            try {
+                              await api.confirmSet(
+                                code: widget.roomCode,
+                                setNo: set.setNo,
+                                requestedBy: myUserId!,
+                              );
+                              await _pollOnce();
+                            } catch (e) {
+                              if (!mounted) return;
+                              context.go('/error', extra: e.toString());
+                            } finally {
+                              if (mounted) setState(() => submitting = false);
+                            }
+                          },
                   ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: OutlinedButton(
+                  child: CommonButton(
+                    text: '終了する',
                     onPressed: (!isAdmin || submitting)
                         ? null
                         : () async {
-                      setState(() => submitting = true);
-                      try {
-                        await api.finish(code: widget.roomCode, requestedBy: myUserId!);
-                        await _pollOnce();
-                        if (!mounted) return;
-                        context.go('/room/${widget.roomCode}/result');
-                      } catch (e) {
-                        if (!mounted) return;
-                        context.go('/error', extra: e.toString());
-                      } finally {
-                        if (mounted) setState(() => submitting = false);
-                      }
-                    },
-                    child: const Text('終了する'),
+                            setState(() => submitting = true);
+                            try {
+                              await api.finish(
+                                code: widget.roomCode,
+                                requestedBy: myUserId!,
+                              );
+                              await _pollOnce();
+                              if (!mounted) return;
+                              context.go('/room/${widget.roomCode}/result');
+                            } catch (e) {
+                              if (!mounted) return;
+                              context.go('/error', extra: e.toString());
+                            } finally {
+                              if (mounted) setState(() => submitting = false);
+                            }
+                          },
                   ),
                 ),
               ],
@@ -346,30 +411,109 @@ class _BestMatchScreenState extends State<BestMatchScreen> {
   List<Widget> _buildHistoryCards(List<RoomSetDto> sets, List<TeamDto> teams) {
     final history = [...sets]..sort((a, b) => a.setNo.compareTo(b.setNo));
     // 現在セットは一番下で表示しているので履歴は「確定済みのみ」
-    final confirmed = history.where((s) => s.isConfirmed).toList();
-    if (confirmed.isEmpty) return [const Text('まだ履歴がないよ')];
+    final confirmed = history.where((s) => s.isConfirmed).toList()..sort((a, b) => b.setNo.compareTo(a.setNo));
+    if (confirmed.isEmpty) return [const Text('まだ履歴はありません')];
 
-    String teamName(int teamId) => teams.firstWhere((t) => t.id == teamId, orElse: () => TeamDto(id: teamId, name: 'Team', totalPoint: 0, imagePath: null, colorHex: null)).name;
+    String teamName(int teamId) => teams
+        .firstWhere(
+          (t) => t.id == teamId,
+          orElse: () => TeamDto(
+            id: teamId,
+            name: 'Team',
+            totalPoint: 0,
+            imagePath: null,
+            colorHex: null,
+          ),
+        )
+        .name;
 
     return confirmed.map((s) {
-      final results = s.results;
-      return ExpansionTile(
-        title: Text('セット ${s.setNo}（確定）'),
-        children: [
-          if (results.isEmpty)
-            const Padding(
-              padding: EdgeInsets.all(12),
-              child: Text('結果がありません'),
-            )
-          else
-            ...results.map((r) {
+      return Card(
+        margin: const EdgeInsets.only(bottom: 16),
+        color: Colors.grey.shade50, // 履歴なので少し色を落とす
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade200,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+              ),
+              child: Text('セット ${s.setNo}（確定済み）', style: const TextStyle(fontWeight: FontWeight.bold)),
+            ),
+            // そのセットの各ユーザーの点数を表示
+            ...s.scores.map((dynamic scoreData) { // 一旦 dynamic で受けてから
+              final sc = scoreData as ScoreDto;
+              final ru = findRoomUserById(int.tryParse(sc.roomUserId.toString()) ?? 0);
+
+              // 1. 名前とアイコンの取得（関数 or 文字列を判定して確実に String で取得）
+              dynamic rawName = ru?.displayName;
+              dynamic rawIcon = ru?.iconPath;
+              if (rawName is Function) rawName = rawName();
+              if (rawIcon is Function) rawIcon = rawIcon();
+
+              final String userName = (rawName ?? '不明').toString();
+              final String iconPath = (rawIcon ?? '').toString();
+
+              // 2. チーム名を取得
+              final team = teams.firstWhereOrNull((t) => t.id == sc.teamId);
+              final String teamName = team?.name ?? '不明';
+
               return ListTile(
-                title: Text(teamName(r.teamId)),
-                subtitle: Text(r.isBestMatch ? 'ベストマッチ（差=0）' : '差=${r.diffValue}'),
-                trailing: Text('+${r.point}'),
+                dense: true,
+                // ✅ アイコン：UserAvatar にそのまま渡せば、空文字のときはデフォルト（ペンギン等）になります
+                leading: UserAvatar(iconPath: iconPath, size: 40),
+
+                // ✅ タイトル：チーム名 / ユーザー名 の形式に
+                title: Text(
+                  '$teamName / $userName',
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                ),
+
+                // ✅ サブタイトル：曲名
+                subtitle: Text(
+                  '曲: ${(sc.songName ?? "-").toString()}',
+                  style: const TextStyle(fontSize: 11),
+                ),
+
+                // ✅ 右側：点数と3桁目
+                trailing: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      '${sc.scoreRaw}点',
+                      style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey),
+                    ),
+                    Text(
+                      '(3桁目: ${sc.thirdDigit})',
+                      style: const TextStyle(fontSize: 10, color: Colors.grey),
+                    ),
+                  ],
+                ),
               );
-            }),
-        ],
+            }).toList(),
+            const Divider(),
+            // チームごとの結果（ポイント）
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: s.results.map((r) {
+                  final team = teams.firstWhereOrNull((t) => t.id == r.teamId);
+                  return Column(
+                    children: [
+                      Text(team?.name ?? 'チーム', style: const TextStyle(fontSize: 12)),
+                      Text('${r.isBestMatch ? "✨" : ""} +${r.point}pt',
+                          style: const TextStyle(fontWeight: FontWeight.w900, color: Colors.orange)),
+                    ],
+                  );
+                }).toList(),
+              ),
+            ),
+          ],
+        ),
       );
     }).toList();
   }
@@ -377,6 +521,7 @@ class _BestMatchScreenState extends State<BestMatchScreen> {
 
 class _TopTeamsBar extends StatelessWidget {
   final List<TeamDto> top3;
+
   const _TopTeamsBar({required this.top3});
 
   @override
@@ -390,9 +535,15 @@ class _TopTeamsBar extends StatelessWidget {
             final t = (i < top3.length) ? top3[i] : null;
             return Column(
               children: [
-                Text('暫定${i + 1}位', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                Text(
+                  '暫定${i + 1}位',
+                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                ),
                 const SizedBox(height: 4),
-                Text(t?.name ?? '---', style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text(
+                  t?.name ?? '---',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
                 Text('${t?.totalPoint ?? 0} pt'),
               ],
             );
@@ -445,13 +596,13 @@ class _CurrentSetList extends StatelessWidget {
               ),
               trailing: ru?.userId == null
                   ? IconButton(
-                icon: const Icon(Icons.casino, color: Colors.purple),
-                onPressed: () => onRandom(turn),
-              )
+                      icon: const Icon(Icons.casino, color: Colors.purple),
+                      onPressed: () => onRandom(turn),
+                    )
                   : IconButton(
-                icon: const Icon(Icons.edit),
-                onPressed: () => onEdit(turn, score),
-              ),
+                      icon: const Icon(Icons.edit),
+                      onPressed: () => onEdit(turn, score),
+                    ),
             );
           }),
         ],

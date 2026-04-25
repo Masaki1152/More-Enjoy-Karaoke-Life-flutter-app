@@ -16,7 +16,6 @@ class _RoomSearchDialogState extends State<RoomSearchDialog> {
   final controller = TextEditingController();
   final store = UserLocalStore();
   late final api = RoomApi(ApiClient.instance.dio);
-
   bool loading = false;
   String? errorText;
 
@@ -33,29 +32,36 @@ class _RoomSearchDialogState extends State<RoomSearchDialog> {
         controller: controller,
         keyboardType: TextInputType.number,
         maxLength: 4,
-        decoration: InputDecoration(
-          hintText: '例：1234',
-          errorText: errorText,
-        ),
+        decoration: InputDecoration(hintText: '例：1234', errorText: errorText),
       ),
+      actionsAlignment: MainAxisAlignment.center,
       actions: [
-        TextButton(
+        OutlinedButton(
           onPressed: loading ? null : () => Navigator.pop(context),
-          child: const Text('キャンセル'),
+          style: OutlinedButton.styleFrom(
+            side: const BorderSide(color: Colors.lightBlue),
+          ),
+          child: const Text(
+            'キャンセル',
+            style: TextStyle(
+              color: Colors.lightBlue,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ),
-        ElevatedButton(
-          onPressed: loading
-              ? null
-              : () async {
+        const SizedBox(width: 16),
+        OutlinedButton(
+          onPressed: loading ? null : () async {
+            // 1. バリデーションと準備
             final code = controller.text.trim();
             if (!_isValidCode(code)) {
-              setState(() => errorText = '4桁の数字で入力してね！');
+              setState(() => errorText = '4桁の数字で入力してください。');
               return;
             }
 
             final userId = await store.getUserId();
             if (userId == null) {
-              setState(() => errorText = 'ユーザー登録が必要だよ！');
+              setState(() => errorText = 'ユーザー登録が必要です。');
               return;
             }
 
@@ -64,19 +70,43 @@ class _RoomSearchDialogState extends State<RoomSearchDialog> {
               errorText = null;
             });
 
+            FocusScope.of(context).unfocus();
+
             try {
+              // 3. API実行
               await api.joinRoom(code: code, userId: userId);
+
               if (!mounted) return;
+
+              // 4. 成功時の処理
               Navigator.pop(context);
               widget.onJoined(code);
-            } catch (_) {
+            } catch (e) {
+              // 5. 失敗時の処理
               if (!mounted) return;
-              setState(() => errorText = 'ルームが見つからない/参加できないよ…');
+              setState(() => errorText = 'ルームが見つかりません。');
             } finally {
-              if (mounted) setState(() => loading = false);
+              if (mounted) {
+                setState(() => loading = false);
+              }
             }
           },
-          child: loading ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator()) : const Text('参加する'),
+          style: OutlinedButton.styleFrom(
+            side: const BorderSide(color: Colors.lightBlue),
+          ),
+          child: loading
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(),
+                )
+              : const Text(
+                  '参加する',
+                  style: TextStyle(
+                    color: Colors.lightBlue,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
         ),
       ],
     );

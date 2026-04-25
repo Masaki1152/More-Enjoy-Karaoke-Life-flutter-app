@@ -177,7 +177,7 @@ class RoomSetDto {
       id: (json['id'] ?? 0) as int,
       roomId: (json['room_id'] ?? 0) as int,
       setNo: (json['set_no'] ?? 0) as int,
-      isConfirmed: json['is_confirmed'] == true,
+      isConfirmed: json['is_confirmed'] == true || json['is_confirmed'] == 1,
       scores: (json['scores'] as List<dynamic>? ?? [])
           .whereType<Map<String, dynamic>>()
           .map(ScoreDto.fromJson)
@@ -246,7 +246,7 @@ class SetResultDto {
       teamId: (json['team_id'] ?? 0) as int,
       diffValue: (json['diff_value'] ?? 0) as int,
       point: (json['point'] ?? 0) as int,
-      isBestMatch: json['is_best_match'] == true,
+      isBestMatch: json['is_best_match'] == true || json['is_best_match'] == 1,
     );
   }
 }

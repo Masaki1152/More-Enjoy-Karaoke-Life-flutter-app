@@ -136,76 +136,107 @@ class _TeamShuffleScreenState extends State<TeamShuffleScreen> with SingleTicker
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('チーム分け（管理者）')),
+      appBar: const CommonAppBar(title: 'チーム分け（管理者）'),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const Text('「チーム分けをする」で混ぜる演出 → プレビュー表示 → 「ゲーム開始」でサーバに確定！'),
-            const SizedBox(height: 12),
-
-            ElevatedButton(
-              onPressed: (shuffling || previewReady)
-                  ? null
-                  : () async {
-                await playShuffleAnimation();
-              },
-              child: const Text('チーム分けをする'),
+            const SizedBox(width: double.infinity),
+            const Text(
+              '「チーム分けをする」で混ぜる演出 → プレビュー表示\n→ 「ゲーム開始」でサーバに確定！',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey),
             ),
+            const SizedBox(height: 20),
 
-            const SizedBox(height: 12),
+            // 1. チーム分けボタン (CommonButton)
+            if (!previewReady)
+              CommonButton(
+                text: shuffling ? 'シャッフル中...' : 'チーム分けをする',
+                onPressed: (shuffling) ? () {} : () async => await playShuffleAnimation(),
+              ),
+
+            const SizedBox(height: 20),
+
+            // シャッフル中の演出
             if (shuffling) ...[
-              const Text('混ぜてるよ〜！'),
-              const SizedBox(height: 8),
+              const Text('混ぜてるよ〜！', style: TextStyle(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 12),
               _MembersGrid(members: previewMembers),
             ],
 
+            // 2. プレビュー表示 (UserListCellを横並び)
             if (previewReady) ...[
-              const SizedBox(height: 8),
-              const Text('プレビュー（仮）', style: TextStyle(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
+              const Text('このチームで確定したよ！', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 16),
               Expanded(
                 child: ListView.builder(
                   itemCount: previewTeams.length,
                   itemBuilder: (_, idx) {
                     final t = previewTeams[idx];
-                    return Card(
-                      child: ListTile(
-                        title: Text('チーム${idx + 1}'),
-                        subtitle: Row(
-                          children: [
-                            _MemberChip(member: t[0]),
-                            const SizedBox(width: 8),
-                            _MemberChip(member: t[1]),
-                          ],
-                        ),
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 16),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        // チームごとに淡い青色の背景
+                        color: Colors.blue.withOpacity(0.05),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.blue.withAlpha(30)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(' チーム ${idx + 1}',
+                              style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              // ペアを横並びに配置
+                              Expanded(
+                                child: UserListCell(
+                                  iconPath: t[0].isGuest ? t[0].guestIconPath : t[0].user?.iconPath,
+                                  userName: t[0].displayName(),
+                                ),
+                              ),
+                              const Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 4),
+                                child: Text('×', style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
+                              ),
+                              Expanded(
+                                child: UserListCell(
+                                  iconPath: t[1].isGuest ? t[1].guestIconPath : t[1].user?.iconPath,
+                                  userName: t[1].displayName(),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     );
                   },
                 ),
               ),
-              const SizedBox(height: 8),
-              ElevatedButton(
+              const SizedBox(height: 16),
+
+              // 3. ゲーム開始ボタン (CommonButton)
+              CommonButton(
+                text: 'ゲーム開始',
                 onPressed: () async {
                   try {
-                    // ✅ 本番確定：サーバがゲスト追加＆チーム生成＆status=playing
                     await api.shuffleTeams(code: widget.roomCode, requestedBy: myUserId!);
                     if (!mounted) return;
-
-                    // ✅ ここではbest-matchへ遷移しない（全員同期をLobbyポーリングに任せる）
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('チーム分けをサーバに確定したよ！みんなの画面が自動で進むよ✨')),
+                      const SnackBar(content: Text('チーム分けを確定したよ！')),
                     );
-
-                    // Lobbyに戻す（管理者本人も待機へ）
-                    context.go('/room/${widget.roomCode}/lobby');
+                    context.push('/room/${widget.roomCode}/lobby');
                   } catch (e) {
                     if (!mounted) return;
-                    context.go('/error', extra: e.toString());
+                    context.push('/error', extra: e.toString());
                   }
                 },
-                child: const Text('ゲーム開始（サーバに確定）'),
               ),
+              const SizedBox(height: 20),
             ],
           ],
         ),

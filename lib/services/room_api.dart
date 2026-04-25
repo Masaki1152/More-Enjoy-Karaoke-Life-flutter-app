@@ -9,7 +9,7 @@ class RoomApi {
 
   Future<String> createRoom({required int userId}) async {
     final res = await dio.post('/rooms', data: {'user_id': userId});
-    return res.data['code'] as String;
+    return res.data['data']['code'] as String;
   }
 
   Future<void> joinRoom({required String code, required int userId}) async {
@@ -29,14 +29,16 @@ class RoomApi {
   Future<void> upsertScore({
     required String code,
     required int setNo,
-    required int userId,
+    required int roomUserId,
+    required int requestedBy,
     required String songName,
     required String scoreRaw,
   }) async {
     await dio.post(
       '/rooms/$code/sets/$setNo/scores',
       data: {
-        'user_id': userId,
+        'room_user_id': roomUserId,
+        'requested_by': requestedBy,
         'song_name': songName,
         'score_raw': scoreRaw,
       },
@@ -87,6 +89,7 @@ class RoomApi {
     required String code,
     required int setNo,
     required int roomUserId,
+    required int requestedBy,
   }) async {
     final rand = Random().nextInt(10); // 0〜9
     final fakeScore = '0.00$rand';
@@ -95,8 +98,23 @@ class RoomApi {
       '/rooms/$code/sets/$setNo/scores',
       data: {
         'room_user_id': roomUserId,
+        'requested_by': requestedBy,
         'song_name': 'ゲスト（自動）',
         'score_raw': fakeScore,
+      },
+    );
+  }
+
+  Future<void> setAdmin({
+    required String code,
+    required int requestedBy,
+    required int newAdminUserId,
+  }) async {
+    await dio.post(
+      '/rooms/$code/set-admin',
+      data: {
+        'requested_by': requestedBy,
+        'new_admin_user_id': newAdminUserId,
       },
     );
   }

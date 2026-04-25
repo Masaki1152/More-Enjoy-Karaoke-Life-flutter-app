@@ -24,6 +24,8 @@ class _RoomLobbyScreenState extends State<RoomLobbyScreen> {
   RoomStateResponse? state;
   int? myUserId;
   bool loading = true;
+  int? selectedAdminUserId;
+  bool adminChanging = false;
 
   @override
   void initState() {
@@ -53,26 +55,42 @@ class _RoomLobbyScreenState extends State<RoomLobbyScreen> {
 
       if (!mounted) return;
 
-      if (res.changed) {
+      if (state == null || res.changed) {
         sinceVersion = res.version;
         state = res;
+
+        final room = state?.room;
+        if (room != null) {
+          final candidates = state!.roomUsers.where((ru) => !ru.isGuest && ru.userId != null).toList();
+
+          if (candidates.isNotEmpty) {
+            selectedAdminUserId ??= room.adminUserId;
+            final exists = candidates.any((ru) => ru.userId == selectedAdminUserId);
+            if (!exists) selectedAdminUserId = candidates.first.userId;
+          }
+        }
+      }
+
+      final room = state?.room;
+      if (room == null) return;
+
+      if (room.status == 'playing') {
+        timer?.cancel();
+        context.go('/room/${widget.roomCode}/best-match');
+        return;
+      }
+
+      if (room.status == 'finished') {
+        timer?.cancel();
+        context.go('/room-entry');
+        return;
       }
 
       loading = false;
       setState(() {});
-
-      // ✅ statusで遷移（全員同期）
-      final room = state?.room;
-      if (room != null && room.status == 'playing') {
-        context.go('/room/${widget.roomCode}/best-match');
-      }
-      if (room != null && room.status == 'finished') {
-        // いずれ結果画面へ。今は仮でEntryへ戻す
-        context.go('/room-entry');
-      }
     } catch (e) {
       if (!mounted) return;
-      context.go('/error', extra: e.toString());
+      context.push('/error', extra: e.toString());
     }
   }
 
@@ -82,8 +100,8 @@ class _RoomLobbyScreenState extends State<RoomLobbyScreen> {
     final isAdmin = (room != null && myUserId != null && room.adminUserId == myUserId);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text('ルーム ${widget.roomCode}'),
+      appBar: CommonAppBar(
+        title: 'ルーム ${widget.roomCode}',
       ),
       body: loading
           ? const Center(child: CircularProgressIndicator())
@@ -97,16 +115,18 @@ class _RoomLobbyScreenState extends State<RoomLobbyScreen> {
             Text('ステータス：${room?.status}', style: const TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
             const Text('参加者一覧', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             Expanded(
               child: ListView.builder(
                 itemCount: state!.roomUsers.length,
                 itemBuilder: (_, i) {
                   final ru = state!.roomUsers[i];
-                  return ListTile(
-                    leading: UserAvatar(iconPath: ru.isGuest ? ru.guestIconPath : ru.user?.iconPath),
-                    title: Text(ru.displayName()),
-                    subtitle: Text(ru.isGuest ? 'ゲスト' : 'ユーザーID: ${ru.userId ?? '-'}'),
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 8.0),
+                    child: UserListCell(
+                      iconPath: ru.isGuest ? ru.guestIconPath : ru.user?.iconPath,
+                      userName: ru.displayName(),
+                    ),
                   );
                 },
               ),
@@ -116,10 +136,53 @@ class _RoomLobbyScreenState extends State<RoomLobbyScreen> {
               const Divider(),
               const SizedBox(height: 8),
               Text('あなたは管理者です ✅', style: TextStyle(color: Colors.blue.shade700)),
+              const SizedBox(height: 12),
+
+              // ✅ 管理者選択UI（ゲスト除外）
+              const Text('管理者を選択（参加者のみ）', style: TextStyle(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+
+              DropdownButton<int>(
+                isExpanded: true,
+                value: selectedAdminUserId,
+                items: state!.roomUsers
+                    .where((ru) => !ru.isGuest && ru.userId != null)
+                    .map((ru) => DropdownMenuItem<int>(
+                  value: ru.userId!,
+                  child: Text(ru.displayName()),
+                ))
+                    .toList(),
+                onChanged: adminChanging ? null : (v) => setState(() => selectedAdminUserId = v),
+              ),
+
               const SizedBox(height: 8),
               ElevatedButton(
+                onPressed: (selectedAdminUserId == null || adminChanging)
+                    ? null
+                    : () async {
+                  setState(() => adminChanging = true);
+                  try {
+                    await api.setAdmin(
+                      code: widget.roomCode,
+                      requestedBy: myUserId!, // 現管理者が実行
+                      newAdminUserId: selectedAdminUserId!,
+                    );
+                    // すぐ反映したいなら即ポーリング
+                    await _pollOnce();
+                  } catch (e) {
+                    if (!mounted) return;
+                    context.push('/error', extra: e.toString());
+                  } finally {
+                    if (mounted) setState(() => adminChanging = false);
+                  }
+                },
+                child: adminChanging ? const Text('変更中...') : const Text('この人を管理者にする'),
+              ),
+
+              const SizedBox(height: 12),
+              ElevatedButton(
                 onPressed: () {
-                  context.go('/room/${widget.roomCode}/shuffle');
+                  context.push('/room/${widget.roomCode}/shuffle');
                 },
                 child: const Text('チーム分け画面へ'),
               ),

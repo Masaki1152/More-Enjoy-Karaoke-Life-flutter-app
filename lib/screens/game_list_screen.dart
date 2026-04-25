@@ -19,7 +19,7 @@ class GameListScreen extends StatelessWidget {
           // カラオケベストマッチ
           GameCard(
             imagePath: ConstantDev.gameBestMatchIconPath,
-            onTap: () => GameUtils.userCheckHandler(context, '/match_room'),
+            onTap: () => GameUtils.userCheckHandler(context, '/room-entry'),
           ),
 
           // 近日公開セル
