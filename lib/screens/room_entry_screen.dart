@@ -22,7 +22,7 @@ class _RoomEntryScreenState extends State<RoomEntryScreen> {
   Future<int?> _requireUserId() async {
     final userId = await store.getUserId();
     if (userId == null && mounted) {
-      context.go('/user/edit');
+      context.go('/profile_edit');
       return null;
     }
     return userId;

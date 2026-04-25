@@ -6,6 +6,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
 import 'package:more_enjoy_karaoke_life/components/components.dart';
 import 'package:more_enjoy_karaoke_life/i18n/strings.g.dart';
+import 'package:more_enjoy_karaoke_life/services/services.dart';
 
 class ProfileEditScreen extends StatefulWidget {
   const ProfileEditScreen({super.key});
@@ -19,6 +20,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   final _controller = TextEditingController();
   final _picker = ImagePicker();
   String? _imagePath;
+  DateTime? _birthday;
 
   @override
   void initState() {
@@ -29,12 +31,15 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
 
   // 既存データを取得
   Future<void> _loadCurrentProfile() async {
-    final name = await storage.read(key: 'user_name');
-    final image = await storage.read(key: 'user_icon_path');
+    final store = UserLocalStore();
+    final name = await store.getUserName();
+    final image = await store.getUserIconPath();
+    final birthday = await store.getBirthday();
     if (name != null) {
       setState(() {
         _controller.text = name;
         _imagePath = image;
+        _birthday = birthday != null ? DateTime.parse(birthday) : null;
       });
     }
   }
@@ -76,15 +81,38 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
 
   Future<void> _saveProfile() async {
     try {
-      await storage.write(key: 'user_name', value: _controller.text);
-      if (_imagePath != null) {
-        await storage.write(key: 'user_icon_path', value: _imagePath!);
+      final store = UserLocalStore();
+      final service = UserService();
+
+      // device_id取得 or 作成
+      String? deviceId = await store.getDeviceId();
+      if (deviceId == null) {
+        deviceId = generateDeviceId();
+        await store.saveDeviceId(deviceId);
       }
 
-      // 保存後に前の画面に戻る
-      if (mounted) {
-        context.pop();
+      // API呼び出し
+      final response = await service.registerUser(
+        deviceId: deviceId,
+        name: _controller.text,
+        iconPath: _imagePath,
+        birthday: _birthday!.toIso8601String(),
+      );
+
+      final user = response['data'];
+
+      // 保存
+      await store.saveUserId(user['id']);
+      await store.saveUserName(user['name']);
+
+      if (_imagePath != null) {
+        await store.saveUserIconPath(_imagePath!);
       }
+
+      await store.saveBirthday(_birthday!.toIso8601String());
+
+      if (mounted) context.pop();
+
     } catch (e) {
       if (context.mounted) {
         context.push('/error', extra: e.toString());
@@ -96,7 +124,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   Widget build(BuildContext context) {
     final int nameLength = _controller.text.length;
     final bool isOver = nameLength > 15;
-    final bool isValid = nameLength >= 1 && !isOver;
+    final bool isValid = nameLength >= 1 && !isOver && _birthday != null;
 
     return Scaffold(
       appBar: CommonAppBar(
@@ -129,6 +157,45 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
             Text(
               isOver ? '${nameLength - 15}文字オーバーしています' : 'あと${15 - nameLength}文字入力できます',
               style: TextStyle(color: isOver ? Colors.red : Colors.black54, fontSize: 12),
+            ),
+
+            const SizedBox(height: 40),
+
+            const Text('誕生日', style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+
+            GestureDetector(
+              onTap: () async {
+                final picked = await showDatePicker(
+                  context: context,
+                  initialDate: _birthday ?? DateTime(2000),
+                  firstDate: DateTime(1900),
+                  lastDate: DateTime.now(),
+                );
+
+                if (picked != null) {
+                  setState(() {
+                    _birthday = picked;
+                  });
+                }
+              },
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.lightBlue.shade200),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  _birthday != null
+                      ? '${_birthday!.year}-${_birthday!.month.toString().padLeft(2, '0')}-${_birthday!.day.toString().padLeft(2, '0')}'
+                      : '選択してください',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: _birthday != null ? Colors.black : Colors.grey,
+                  ),
+                ),
+              ),
             ),
 
             const SizedBox(height: 40),

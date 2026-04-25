@@ -104,7 +104,7 @@ class _BestMatchScreenState extends State<BestMatchScreen> {
   }
 
   List<TeamDto> topTeams(int n) {
-    final teams = [...(state?.teams ?? [])];
+    final List<TeamDto> teams = [...(state?.teams ?? [])];
     teams.sort((a, b) => b.totalPoint.compareTo(a.totalPoint));
     return teams.take(n).toList();
   }
