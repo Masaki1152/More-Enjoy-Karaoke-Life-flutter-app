@@ -3,12 +3,12 @@ import 'package:more_enjoy_karaoke_life/utils/utils.dart';
 
 class CommonButton extends StatelessWidget {
   final String text;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
 
   const CommonButton({
     super.key,
     required this.text,
-    required this.onPressed,
+    this.onPressed,
   });
 
   @override
@@ -19,8 +19,9 @@ class CommonButton extends StatelessWidget {
       child: OutlinedButton(
         onPressed: onPressed,
         style: OutlinedButton.styleFrom(
-          side: const BorderSide(color: AppColors.primaryColor, width: 2),
+          side: BorderSide(color: onPressed == null ? Colors.grey : AppColors.primaryColor, width: 2),
           foregroundColor: AppColors.primaryColor,
+          disabledForegroundColor: Colors.grey,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),

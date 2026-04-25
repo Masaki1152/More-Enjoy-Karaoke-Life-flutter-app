@@ -10,6 +10,7 @@ import 'package:more_enjoy_karaoke_life/components/components.dart';
 import 'package:collection/collection.dart';
 import 'score_input_dialog.dart';
 import 'set_result_dialog.dart';
+import 'package:more_enjoy_karaoke_life/components/components.dart';
 
 class BestMatchScreen extends StatefulWidget {
   final String roomCode;
@@ -121,10 +122,10 @@ class _BestMatchScreenState extends State<BestMatchScreen> {
 
     // ⚠️ ゲストがいると user_id 方式では入力できず confirm に失敗する可能性あり
     // MVP: ゲストがいたら false にして警告を出す
-    final hasGuest = (state?.roomUsers.any((ru) => ru.userId == null) ?? false);
-    if (hasGuest) return false;
+    final totalUsers = state?.roomUsers.length ?? 0;
+    final enteredScores = set.scores.length;
 
-    return set.scores.length >= (state?.roomUsers.length ?? 0);
+    return enteredScores >= totalUsers;
   }
 
   /// フロント側で結果を“予測”してダイアログに出す（サーバ確定前）
@@ -185,7 +186,7 @@ class _BestMatchScreenState extends State<BestMatchScreen> {
         centerTitle: true,
         actions: [
           IconButton(
-            onPressed: () => context.go('/room/${widget.roomCode}/team-settings'),
+            onPressed: () => context.push('/room/${widget.roomCode}/team-settings'),
             icon: const Icon(Icons.settings),
           )
         ],
@@ -242,7 +243,8 @@ class _BestMatchScreenState extends State<BestMatchScreen> {
                           await api.upsertScore(
                             code: widget.roomCode,
                             setNo: set.setNo,
-                            userId: ru.userId!, // ✅ user_id方式
+                            roomUserId: ru.id,
+                            requestedBy: myUserId!,
                             songName: result.songName ?? '',
                             scoreRaw: result.scoreRaw,
                           );
@@ -250,7 +252,7 @@ class _BestMatchScreenState extends State<BestMatchScreen> {
                           await _pollOnce();
                         } catch (e) {
                           if (!mounted) return;
-                          context.go('/error', extra: e.toString());
+                          context.push('/error', extra: e.toString());
                         } finally {
                           if (mounted) setState(() => submitting = false);
                         }
@@ -262,6 +264,7 @@ class _BestMatchScreenState extends State<BestMatchScreen> {
                             code: widget.roomCode,
                             setNo: set.setNo,
                             roomUserId: turn.roomUserId,
+                            requestedBy: myUserId!,
                           );
                           await _pollOnce(); // 終わったら画面を更新！
                         } catch (e) {
@@ -290,7 +293,9 @@ class _BestMatchScreenState extends State<BestMatchScreen> {
             Row(
               children: [
                 Expanded(
-                  child: ElevatedButton(
+                  child: CommonButton(
+                    text: '確定',
+                    // isAdmin かつ 全員入力済み かつ 通信中でない場合のみ関数を渡す
                     onPressed: (!isAdmin || set == null || !allScoresEnteredForCurrentSet() || submitting)
                         ? null
                         : () async {
@@ -321,12 +326,12 @@ class _BestMatchScreenState extends State<BestMatchScreen> {
                         if (mounted) setState(() => submitting = false);
                       }
                     },
-                    child: const Text('確定'),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: OutlinedButton(
+                  child: CommonButton(
+                    text: '終了する',
                     onPressed: (!isAdmin || submitting)
                         ? null
                         : () async {
@@ -343,7 +348,6 @@ class _BestMatchScreenState extends State<BestMatchScreen> {
                         if (mounted) setState(() => submitting = false);
                       }
                     },
-                    child: const Text('終了する'),
                   ),
                 ),
               ],

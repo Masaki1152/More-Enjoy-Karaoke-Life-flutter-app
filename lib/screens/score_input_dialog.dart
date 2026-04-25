@@ -33,9 +33,9 @@ class _ScoreInputDialogState extends State<ScoreInputDialog> {
   late final songController = TextEditingController(text: widget.initialSong ?? '');
   late final scoreController = TextEditingController(text: widget.initialScore ?? '');
   String? error;
+  bool loading = false; // ローディング状態を追加
 
   bool _isValidScore(String s) {
-    // "91.002" / "90" / "88.3" など許容（サーバは文字列で3桁目抽出）
     final reg = RegExp(r'^\d{1,3}(\.\d{1,3})?$');
     return reg.hasMatch(s.trim());
   }
@@ -51,12 +51,13 @@ class _ScoreInputDialogState extends State<ScoreInputDialog> {
             children: [
               UserAvatar(iconPath: widget.iconPath, size: 40),
               const SizedBox(width: 8),
-              Text(widget.displayName,
-                  style: const TextStyle(fontWeight: FontWeight.bold)),
+              Text(
+                widget.displayName,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
             ],
           ),
           const SizedBox(height: 12),
-
           // 曲名（ゲストは入力不可）
           TextField(
             controller: songController,
@@ -66,11 +67,9 @@ class _ScoreInputDialogState extends State<ScoreInputDialog> {
               hintText: widget.isGuest ? 'ゲストは入力不要' : null,
             ),
           ),
-
           TextField(
             controller: scoreController,
-            keyboardType:
-            const TextInputType.numberWithOptions(decimal: true),
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
             decoration: InputDecoration(
               labelText: '点数',
               errorText: error,
@@ -79,18 +78,42 @@ class _ScoreInputDialogState extends State<ScoreInputDialog> {
           ),
         ],
       ),
+      actionsAlignment: MainAxisAlignment.center, // 中央配置に設定
       actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('キャンセル'),
+        OutlinedButton(
+          onPressed: loading ? null : () => Navigator.pop(context),
+          style: OutlinedButton.styleFrom(
+            side: const BorderSide(color: Colors.lightBlue),
+          ),
+          child: const Text(
+            'キャンセル',
+            style: TextStyle(
+              color: Colors.lightBlue,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ),
-        ElevatedButton(
-          onPressed: () {
+        const SizedBox(width: 16),
+        OutlinedButton(
+          onPressed: loading
+              ? null
+              : () async {
             final score = scoreController.text.trim();
             if (!_isValidScore(score)) {
               setState(() => error = '点数の形式が違うかも（例：91.002）');
               return;
             }
+
+            setState(() {
+              loading = true;
+              error = null;
+            });
+
+            // 擬似的な待機時間（必要に応じて削除してください）
+            // await Future.delayed(const Duration(milliseconds: 500));
+
+            if (!mounted) return;
+
             Navigator.pop(
               context,
               ScoreInputResult(
@@ -99,8 +122,23 @@ class _ScoreInputDialogState extends State<ScoreInputDialog> {
               ),
             );
           },
-          child: const Text('登録'),
-        )
+          style: OutlinedButton.styleFrom(
+            side: const BorderSide(color: Colors.lightBlue),
+          ),
+          child: loading
+              ? const SizedBox(
+            width: 18,
+            height: 18,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          )
+              : const Text(
+            '登録する',
+            style: TextStyle(
+              color: Colors.lightBlue,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
       ],
     );
   }

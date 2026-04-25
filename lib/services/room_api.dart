@@ -29,14 +29,16 @@ class RoomApi {
   Future<void> upsertScore({
     required String code,
     required int setNo,
-    required int userId,
+    required int roomUserId,
+    required int requestedBy,
     required String songName,
     required String scoreRaw,
   }) async {
     await dio.post(
       '/rooms/$code/sets/$setNo/scores',
       data: {
-        'user_id': userId,
+        'room_user_id': roomUserId,
+        'requested_by': requestedBy,
         'song_name': songName,
         'score_raw': scoreRaw,
       },
@@ -87,6 +89,7 @@ class RoomApi {
     required String code,
     required int setNo,
     required int roomUserId,
+    required int requestedBy,
   }) async {
     final rand = Random().nextInt(10); // 0〜9
     final fakeScore = '0.00$rand';
@@ -95,6 +98,7 @@ class RoomApi {
       '/rooms/$code/sets/$setNo/scores',
       data: {
         'room_user_id': roomUserId,
+        'requested_by': requestedBy,
         'song_name': 'ゲスト（自動）',
         'score_raw': fakeScore,
       },

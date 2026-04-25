@@ -5,6 +5,7 @@ import '../services/api_client.dart';
 import '../services/room_api.dart';
 import '../services/user_local_store.dart';
 import '../models/room_state_models.dart';
+import 'package:more_enjoy_karaoke_life/components/components.dart';
 
 class TeamSettingsScreen extends StatefulWidget {
   final String roomCode;
@@ -21,14 +22,33 @@ class _TeamSettingsScreenState extends State<TeamSettingsScreen> {
   int? myUserId;
   RoomStateResponse? state;
   bool loading = true;
+  bool isSaving = false;
 
-  final Map<int, TextEditingController> nameControllers = {};
-  final Map<int, TextEditingController> colorControllers = {};
+  final TextEditingController _nameController = TextEditingController();
+  String _selectedColorHex = '#2196F3';
+
+  // カラーバリエーションの定義
+  final List<Map<String, dynamic>> _colorOptions = [
+    {'name': 'ブルー', 'hex': '#2196F3', 'color': Colors.blue},
+    {'name': 'レッド', 'hex': '#F44336', 'color': Colors.red},
+    {'name': 'グリーン', 'hex': '#4CAF50', 'color': Colors.green},
+    {'name': 'イエロー', 'hex': '#FFEB3B', 'color': Colors.yellow},
+    {'name': 'オレンジ', 'hex': '#FF9800', 'color': Colors.orange},
+    {'name': 'パープル', 'hex': '#9C27B0', 'color': Colors.purple},
+    {'name': 'ピンク', 'hex': '#E91E63', 'color': Colors.pink},
+  ];
 
   @override
   void initState() {
     super.initState();
     _init();
+    _nameController.addListener(() => setState(() {}));
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
   }
 
   Future<void> _init() async {
@@ -38,82 +58,133 @@ class _TeamSettingsScreenState extends State<TeamSettingsScreen> {
       return;
     }
 
-    state = await api.fetchState(code: widget.roomCode, sinceVersion: 0);
-
-    for (final t in state!.teams) {
-      nameControllers[t.id] = TextEditingController(text: t.name);
-      colorControllers[t.id] = TextEditingController(text: t.colorHex ?? '');
+    try {
+      state = await api.fetchState(code: widget.roomCode, sinceVersion: 0);
+      final teamId = _getMyTeamId();
+      if (teamId != null) {
+        final team = state!.teams.firstWhere((t) => t.id == teamId);
+        _nameController.text = team.name;
+        _selectedColorHex = team.colorHex ?? '#2196F3';
+      }
+    } catch (e) {
+      debugPrint('Error: $e');
     }
 
     if (!mounted) return;
     setState(() => loading = false);
   }
 
-  int? myTeamId() {
+  int? _getMyTeamId() {
     if (state == null || myUserId == null) return null;
-    try {
-      final myRoomUser = state!.roomUsers
-          .where((ru) => ru.userId == myUserId)
-          .firstOrNull;
-
-      if (myRoomUser == null) return null;
-
-      final myTurn = state!.turns
-          .where((t) => t.roomUserId == myRoomUser.id)
-          .firstOrNull;
-
-      return myTurn?.teamId;
-    } catch (e) {
-      return null;
-    }
+    final myRoomUser = state!.roomUsers.where((ru) => ru.userId == myUserId).firstOrNull;
+    if (myRoomUser == null) return null;
+    final myTurn = state!.turns.where((t) => t.roomUserId == myRoomUser.id).firstOrNull;
+    return myTurn?.teamId;
   }
 
   @override
   Widget build(BuildContext context) {
-    if (loading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
+    if (loading) return const Scaffold(body: Center(child: CircularProgressIndicator()));
 
-    final teamId = myTeamId();
-    if (teamId == null) {
-      return const Scaffold(body: Center(child: Text('所属チームが見つかりません')));
-    }
+    final teamId = _getMyTeamId();
+    if (teamId == null) return const Scaffold(body: Center(child: Text('所属チームが見つかりません')));
 
-    final team = state!.teams.firstWhere((t) => t.id == teamId);
+    final int nameLength = _nameController.text.length;
+    final bool isOver = nameLength > 10; // チーム名は10文字制限と仮定
+    final bool isValid = nameLength >= 1 && !isOver && !isSaving;
 
     return Scaffold(
-      appBar: CommonAppBar(title: 'チーム設定'),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
+      appBar: const CommonAppBar(title: 'チーム設定'),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 24.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('あなたのチーム：${team.name}', style: const TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 12),
+            const Text('チームの個性を出そう！',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 32),
+
+            const Text('チーム名', style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
             TextField(
-              controller: nameControllers[team.id],
-              decoration: const InputDecoration(labelText: 'チーム名'),
+              controller: _nameController,
+              decoration: InputDecoration(
+                hintText: '10文字以内で入力してください',
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: isOver ? Colors.red : Colors.lightBlue.shade200),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: isOver ? Colors.red : Colors.lightBlue, width: 2),
+                ),
+              ),
             ),
-            TextField(
-              controller: colorControllers[team.id],
-              decoration: const InputDecoration(labelText: 'カラー（例: #FFAA00）'),
+            Text(
+              isOver ? '${nameLength - 10}文字オーバーしています' : 'あと${10 - nameLength}文字入力できます',
+              style: TextStyle(color: isOver ? Colors.red : Colors.black54, fontSize: 12),
             ),
-            const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: () async {
-                await api.updateTeam(
-                  code: widget.roomCode,
-                  teamId: team.id,
-                  requestedBy: myUserId!,
-                  name: nameControllers[team.id]!.text,
-                  colorHex: colorControllers[team.id]!.text,
+
+            const SizedBox(height: 40),
+
+            const Text('チームカラー', style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 16),
+
+            // カラー選択（グリッド表示のラジオボタン風）
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: _colorOptions.map((opt) {
+                final bool isSelected = _selectedColorHex == opt['hex'];
+                return GestureDetector(
+                  onTap: () => setState(() => _selectedColorHex = opt['hex']),
+                  child: Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: opt['color'],
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: isSelected ? Colors.black : Colors.transparent,
+                        width: 3,
+                      ),
+                      boxShadow: [
+                        if (isSelected) const BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2))
+                      ],
+                    ),
+                    child: isSelected ? const Icon(Icons.check, color: Colors.white) : null,
+                  ),
                 );
-                if (!mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('チーム設定を更新したよ！')),
-                );
-              },
-              child: const Text('保存'),
-            )
+              }).toList(),
+            ),
+
+            const SizedBox(height: 60),
+
+            Center(
+              child: CommonButton(
+                text: isSaving ? '保存中...' : '設定を保存する',
+                onPressed: isValid ? () async {
+                  setState(() => isSaving = true);
+                  try {
+                    await api.updateTeam(
+                      code: widget.roomCode,
+                      teamId: teamId,
+                      requestedBy: myUserId!,
+                      name: _nameController.text,
+                      colorHex: _selectedColorHex,
+                    );
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('チーム設定を更新したよ！')),
+                    );
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('保存に失敗しちゃった…')),
+                    );
+                  } finally {
+                    if (mounted) setState(() => isSaving = false);
+                  }
+                } : () {}, // 無効時は何もしない（CommonButtonの仕様に合わせる）
+              ),
+            ),
           ],
         ),
       ),
